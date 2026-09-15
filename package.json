@@ -1,0 +1,13 @@
+{
+  "name": "play3js",
+  "version": "1.0.0",
+  "description": "Interactive Three.js walkthrough traced from the Apartment F plan",
+  "scripts": {
+    "test": "node check.mjs",
+    "start": "python -m http.server 4173 --bind 127.0.0.1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

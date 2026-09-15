@@ -1,0 +1,9 @@
+# Upload only the files used by the static app.
+**
+!index.html
+!style.css
+!app.js
+!plan.js
+!260801-apartm-plan-F.pdf
+!assets/
+!assets/plan.png
