@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { SCALE, X, Z, outline, rooms, walls, windows, doors, inside } from './plan.js';
+import { wallCorners, cornerSpan } from './wall-edges.js';
 
 const $ = s => document.querySelector(s);
 const scene = new THREE.Scene();
@@ -58,14 +59,7 @@ const oakTex=texture('oak'), fabricTex=texture('fabric'), stoneTex=texture('ston
 const M={wall:material('#ece9df'),trim:material('#f5f2e7'),oak:material('#cbb18c',.65,{map:oakTex}),darkOak:material('#806044',.7,{map:oakTex}),stone:material('#e4e1d4',.8,{map:stoneTex}),tile:material('#cdcec2',.65,{map:tileTex}),linen:material('#eee7d8',.95,{map:fabricTex}),sage:material('#829071',.95,{map:fabricTex}),clay:material('#ad785d',.9,{map:fabricTex}),dark:material('#303d35',.6),brass:material('#a68a54',.3,{metalness:.7}),white:material('#f7f5e9',.26),metal:material('#9caaa9',.25,{metalness:.8}),glass:material('#d6e6dc',.12,{transparent:true,opacity:.16,metalness:.1,depthWrite:false}),mirror:material('#a5c0bb',.06,{metalness:1}),leaf:material('#465d33',.8),soil:material('#493c2a')};
 const wallEdgeMaterial=new THREE.LineBasicMaterial({color:'#68685f',toneMapped:false,depthWrite:false});
 Object.assign(M.wall,{polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
-function mesh(geometry,mat,x,y,z,parent=scene) {
-  const o=new THREE.Mesh(geometry,mat);o.position.set(X(x),y,Z(z));o.castShadow=true;o.receiveShadow=true;parent.add(o);
-  if(mat===M.wall) {
-    const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,30),wallEdgeMaterial);
-    edges.renderOrder=1;o.add(edges);
-  }
-  return o;
-}
+function mesh(geometry,mat,x,y,z,parent=scene) {const o=new THREE.Mesh(geometry,mat);o.position.set(X(x),y,Z(z));o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
 function box(x,z,w,d,h,y,mat=M.oak,round=0,parent=scene) {
   return mesh(round?new RoundedBoxGeometry(w*SCALE,h,d*SCALE,2,Math.min(round,h/3,w*SCALE/3,d*SCALE/3)):new THREE.BoxGeometry(w*SCALE,h,d*SCALE),mat,x,y+h/2,z,parent);
 }
@@ -123,6 +117,24 @@ for(const [x1,z1,x2,z2] of windows) {
 for(const [x,z,w,d] of [[490,235,70,70],[1420,235,70,70],[1410,905,90,60],[515,905,105,70],[940,963,75,55]]) {
   box(x,z,w,d,2.8,0,M.wall,0,architecture);solid(x,z,w,d);
 }
+// Outline the joined footprint, not the end faces of individual wall blocks.
+const wallFootprints=architecture.children.map(o=>{
+  const {width,depth}=o.geometry.parameters,x=o.position.x/SCALE+850,z=o.position.z/SCALE+650;
+  return [x-width/SCALE/2,z-depth/SCALE/2,x+width/SCALE/2,z+depth/SCALE/2].map(v=>Math.round(v*1000)/1000);
+});
+function edgeLines(points,parent) {
+  const lines=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points),wallEdgeMaterial);
+  lines.renderOrder=1;parent.add(lines);return lines;
+}
+const halfWallThickness=Math.max(...walls.map(w=>w[4]??12))/2;
+const cornerLines=edgeLines(wallCorners(wallFootprints).flatMap(([x,z])=>
+  cornerSpan(x,z,doors,windows,halfWallThickness).map(y=>new THREE.Vector3(X(x),y,Z(z)))),architecture);
+// Only the bottom of each header borders an opening; its top and ends are seams.
+const openingLines=edgeLines([...doors,...windows].flatMap(([x1,z1,x2,z2],i)=>{
+  const horizontal=z1===z2,half=i<doors.length?6:4;
+  return [-half,half].flatMap(offset=>[[x1,z1],[x2,z2]].map(([x,z])=>
+    new THREE.Vector3(X(x+(horizontal?0:offset)),2.25,Z(z+(horizontal?offset:0)))));
+}),overhead);
 
 function rug(x,z,w,d,mat=M.linen) {
   box(x,z,w,d,.018,.014,mat,.007);

@@ -2,6 +2,12 @@ import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
 import { rooms, X, Z, inside } from './plan.js';
 import { mkdir } from 'node:fs/promises';
+import { wallCorners, cornerSpan } from './wall-edges.js';
+
+assert.deepEqual(wallCorners([[0,0,4,1],[0,0,1,4]]),[[0,0],[0,4],[4,0],[4,1],[1,1],[1,4]],'L junction has outer and inner corners without block seams');
+assert.deepEqual(wallCorners([[0,0,2,1],[2,0,4,1]]),[[0,0],[0,1],[4,0],[4,1]],'Straight wall joins have no corner lines');
+assert.deepEqual(cornerSpan(3,1,[[2,0,4,0]],[],1),[0,2.25],'Door jamb stops at header');
+assert.deepEqual(cornerSpan(1,1,[[2,0,4,0]],[],1),[0,2.8],'Adjacent room corner stays full height');
 
 // Run npm start first. Uses the installed Chrome; CHROME_PATH can select another Chromium executable.
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--enable-webgl','--ignore-gpu-blocklist']});
@@ -11,11 +17,10 @@ try {
     const response=await route.fetch();
     await route.fulfill({response,body:await response.text()+`
       window.checkWallEdges=()=>{
-        const walls=[];scene.traverse(o=>{if(o.isMesh&&o.material===M.wall)walls.push(o);});
-        return walls.length>0&&walls.every(w=>w.children.some(e=>
-          e.isLineSegments&&e.geometry.attributes.position.count===24&&
-          e.material.depthTest&&!e.material.depthWrite&&e.renderOrder>w.renderOrder
-        ));
+        return cornerLines.parent===architecture&&openingLines.parent===overhead&&
+          [cornerLines,openingLines].every(e=>e.geometry.attributes.position.count>0&&
+            e.material.depthTest&&!e.material.depthWrite&&e.renderOrder===1)&&
+          architecture.children.filter(o=>o.isMesh).every(o=>o.children.length===0);
       };
     `});
   });
@@ -25,7 +30,7 @@ try {
   await page.waitForTimeout(1200);
   assert.equal(await page.evaluate(()=>apartment.revision),'185');
   assert.ok(await page.evaluate(()=>apartment.meshes)>100);
-  assert.ok(await page.evaluate(()=>checkWallEdges()),'Every wall, sill and opening header has depth-tested corner lines');
+  assert.ok(await page.evaluate(()=>checkWallEdges()),'Joined corner and opening lines replace individual block outlines');
   const reachable=await page.evaluate(()=>{
     const step=.08,minX=-7.1,minZ=-4.6,width=177,height=126;
     const clear=new Uint8Array(width*height),seen=new Uint8Array(width*height);
