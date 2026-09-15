@@ -56,7 +56,16 @@ function texture(kind) {
 }
 const oakTex=texture('oak'), fabricTex=texture('fabric'), stoneTex=texture('stone'), tileTex=texture('tile');
 const M={wall:material('#ece9df'),trim:material('#f5f2e7'),oak:material('#cbb18c',.65,{map:oakTex}),darkOak:material('#806044',.7,{map:oakTex}),stone:material('#e4e1d4',.8,{map:stoneTex}),tile:material('#cdcec2',.65,{map:tileTex}),linen:material('#eee7d8',.95,{map:fabricTex}),sage:material('#829071',.95,{map:fabricTex}),clay:material('#ad785d',.9,{map:fabricTex}),dark:material('#303d35',.6),brass:material('#a68a54',.3,{metalness:.7}),white:material('#f7f5e9',.26),metal:material('#9caaa9',.25,{metalness:.8}),glass:material('#d6e6dc',.12,{transparent:true,opacity:.16,metalness:.1,depthWrite:false}),mirror:material('#a5c0bb',.06,{metalness:1}),leaf:material('#465d33',.8),soil:material('#493c2a')};
-function mesh(geometry,mat,x,y,z,parent=scene) {const o=new THREE.Mesh(geometry,mat);o.position.set(X(x),y,Z(z));o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
+const wallEdgeMaterial=new THREE.LineBasicMaterial({color:'#68685f',toneMapped:false,depthWrite:false});
+Object.assign(M.wall,{polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
+function mesh(geometry,mat,x,y,z,parent=scene) {
+  const o=new THREE.Mesh(geometry,mat);o.position.set(X(x),y,Z(z));o.castShadow=true;o.receiveShadow=true;parent.add(o);
+  if(mat===M.wall) {
+    const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geometry,30),wallEdgeMaterial);
+    edges.renderOrder=1;o.add(edges);
+  }
+  return o;
+}
 function box(x,z,w,d,h,y,mat=M.oak,round=0,parent=scene) {
   return mesh(round?new RoundedBoxGeometry(w*SCALE,h,d*SCALE,2,Math.min(round,h/3,w*SCALE/3,d*SCALE/3)):new THREE.BoxGeometry(w*SCALE,h,d*SCALE),mat,x,y+h/2,z,parent);
 }
@@ -301,23 +310,17 @@ function setMode(next,room=rooms[0]) {
   renderer.domElement.tabIndex=-1;renderer.domElement.focus({preventScroll:true});
 }
 function look(){camera.rotation.order='YXZ';camera.rotation.set(pitch,yaw,0);}
-const ns='http://www.w3.org/2000/svg';
 for(const [i,r] of rooms.entries()) {
   const b=document.createElement('button');b.dataset.room=r.id;b.innerHTML=`<span class="number">${String(i+1).padStart(2,'0')}</span><span>${r.name}</span><span class="arrow">↗</span>`;b.addEventListener('click',()=>setMode('walk',r));$('#rooms').append(b);
-  const poly=document.createElementNS(ns,'polygon');poly.setAttribute('points',r.poly.map(p=>p.join(',')).join(' '));poly.setAttribute('class','room');poly.dataset.room=r.id;$('#minimap').append(poly);
 }
-for(const [x1,z1,x2,z2] of walls){const line=document.createElementNS(ns,'line');for(const [k,v] of Object.entries({x1,y1:z1,x2,y2:z2,class:'wall'}))line.setAttribute(k,v);$('#minimap').append(line);}
-const marker=document.createElementNS(ns,'path');marker.setAttribute('d','M 0 -23 L 16 15 L 0 9 L -16 15 Z');marker.setAttribute('class','marker');$('#minimap').append(marker);
 function updateRoom(){
   const px=camera.position.x/SCALE+850,pz=camera.position.z/SCALE+650;
   const room=mode==='walk'?rooms.find(r=>inside(px,pz,r.poly)):null;
   const id=room?.id||'';
   if(id!==currentRoom||mode==='overview') {
-    currentRoom=id;$('#room-name').textContent=room?.name||'Hallway';$('#location').textContent=mode==='walk'?(room?.name||'Hallway'):'The whole residence';
+    currentRoom=id;$('#room-name').textContent=room?.name||'Hallway';
     for(const b of $('#rooms').children){b.classList.toggle('active',b.dataset.room===id);b.setAttribute('aria-current',b.dataset.room===id?'location':'false');}
-    for(const p of $('#minimap').querySelectorAll('.room'))p.classList.toggle('selected',p.dataset.room===id);
   }
-  marker.style.display=mode==='walk'?'':'none';marker.setAttribute('transform',`translate(${px} ${pz}) rotate(${-yaw*180/Math.PI})`);$('#map-mode').textContent=mode==='walk'?'WALKING':'OVERVIEW';
 }
 $('#overview').onclick=()=>setMode('overview');$('#walk').onclick=()=>setMode('walk');
 $('#reset').onclick=()=>setMode(mode);

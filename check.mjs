@@ -7,12 +7,25 @@ import { mkdir } from 'node:fs/promises';
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--enable-webgl','--ignore-gpu-blocklist']});
 try {
   const page=await browser.newPage({viewport:{width:1536,height:1000},deviceScaleFactor:1});
+  await page.route('**/app.js',async route=>{
+    const response=await route.fetch();
+    await route.fulfill({response,body:await response.text()+`
+      window.checkWallEdges=()=>{
+        const walls=[];scene.traverse(o=>{if(o.isMesh&&o.material===M.wall)walls.push(o);});
+        return walls.length>0&&walls.every(w=>w.children.some(e=>
+          e.isLineSegments&&e.geometry.attributes.position.count===24&&
+          e.material.depthTest&&!e.material.depthWrite&&e.renderOrder>w.renderOrder
+        ));
+      };
+    `});
+  });
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('http://127.0.0.1:4173');
   await page.waitForFunction(()=>window.apartment,{timeout:60000});
   await page.waitForTimeout(1200);
   assert.equal(await page.evaluate(()=>apartment.revision),'185');
   assert.ok(await page.evaluate(()=>apartment.meshes)>100);
+  assert.ok(await page.evaluate(()=>checkWallEdges()),'Every wall, sill and opening header has depth-tested corner lines');
   const reachable=await page.evaluate(()=>{
     const step=.08,minX=-7.1,minZ=-4.6,width=177,height=126;
     const clear=new Uint8Array(width*height),seen=new Uint8Array(width*height);

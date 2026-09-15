@@ -10,7 +10,7 @@ npm start
 
 Open **http://127.0.0.1:4173**. Python 3 serves the static files. Alternatively, serve this folder with any static HTTP server. Internet access is needed for Three.js and the optional web fonts.
 
-Drag to orbit; scroll/pinch to zoom. Choose **Walk inside** or a room, then use **WASD / arrow keys** and drag to look. A click on the scene locks the mouse; **Esc** releases it. Touch devices have a movement pad. Furniture and walls block movement. The mini plan tracks your location. Use the daylight switch for an evening lighting study.
+Drag to orbit; scroll/pinch to zoom. Choose **Walk inside** or a room, then use **WASD / arrow keys** and drag to look. A click on the scene locks the mouse; **Esc** releases it. Touch devices have a movement pad. Furniture and walls block movement. Use the daylight switch for an evening lighting study.
 
 ## Source and interpretation
 
