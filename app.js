@@ -18,7 +18,7 @@ renderer.shadowMap.type = THREE.VSMShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.15;
 $('#viewport').append(renderer.domElement);
-renderer.domElement.setAttribute('aria-label','3D apartment. Drag chairs and tables to move in overview. Drag elsewhere to orbit; choose Walk inside for keyboard movement.');
+renderer.domElement.setAttribute('aria-label','3D apartment. Choose Edit furniture to move chairs and tables. Drag elsewhere to orbit; choose Walk inside for keyboard movement.');
 const camera = new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.05,150);
 const orbit = new OrbitControls(camera,renderer.domElement);
 orbit.enableDamping = true;
@@ -319,7 +319,7 @@ cyl(731,720,.7,.53,2.12,M.dark,.7,overhead);cyl(731,720,28,.26,1.94,M.linen,12,o
 
 for(const object of furniture)object.userData.homeAngle=object.rotation.y;
 
-let mode='overview',fullWalls=false,evening=false,yaw=0,pitch=0,currentRoom='',drag=null,lastTime=0;
+let mode='overview',fullWalls=false,evening=false,editing=false,yaw=0,pitch=0,currentRoom='',drag=null,lastTime=0;
 const keys=new Set();
 function canStand(x,z) {
   const px=x/SCALE+850,pz=z/SCALE+650,r=.18;
@@ -341,12 +341,13 @@ function resetView() {
   camera.fov=39;camera.updateProjectionMatrix();orbit.update();
 }
 function setMode(next,room=rooms[0]) {
+  if(next==='walk'&&editing)editMode(false);
   endFurnitureDrag();keys.clear();drag=null;
   if(document.pointerLockElement)document.exitPointerLock();
   mode=next;document.body.classList.toggle('walking',mode==='walk');orbit.enabled=mode==='overview';
   for(const id of ['overview','walk']){$('#'+id).classList.toggle('active',mode===id);$('#'+id).setAttribute('aria-pressed',String(mode===id));}
   wallState();
-  if(mode==='overview'){resetView();$('#hint').innerHTML='Drag furniture <i>·</i> Space to rotate <i>·</i> Drag elsewhere to orbit';currentRoom='';updateRoom();}
+  if(mode==='overview'){resetView();$('#hint').innerHTML='Choose Edit furniture to move pieces <i>·</i> Drag elsewhere to orbit';currentRoom='';updateRoom();}
   else {
     camera.fov=67;camera.updateProjectionMatrix();camera.position.set(X(room.point[0]),1.62,Z(room.point[1]));
     yaw=Math.atan2(-(room.look[0]-room.point[0]),-(room.look[1]-room.point[1]));pitch=['bath','guest','utility','kitchen'].includes(room.id)?-.48:-.2;
@@ -372,8 +373,15 @@ function cleanView(on=!document.body.classList.contains('clean-view')) {
   document.body.classList.toggle('clean-view',on);
   $('#clean').setAttribute('aria-pressed',String(on));
   $('#clean').title=on?'Show interface':'Hide interface; Esc restores it';
+  $('#clean span').textContent=on?(editing?'Finish editing':'Show controls'):'Clean view';
 }
-$('#clean').onclick=()=>cleanView();
+function editMode(on=!editing) {
+  if(on&&mode!=='overview')setMode('overview');
+  editing=on;$('#edit').setAttribute('aria-pressed',String(on));
+  cleanView(on);
+}
+$('#edit').onclick=()=>editMode();
+$('#clean').onclick=()=>editing?editMode(false):cleanView();
 $('#reset').onclick=()=>{
   endFurnitureDrag();
   for(const object of furniture)placeFurniture(object,object.userData.home,object.userData.homeAngle);
@@ -391,11 +399,11 @@ $('#source').onclick=()=>showDialog('#plan-dialog');$('#help').onclick=()=>showD
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest('dialog').close();
 for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});
 const movement={KeyW:'forward',ArrowUp:'forward',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
-addEventListener('keydown',e=>{if(e.code==='Escape'&&document.body.classList.contains('clean-view')&&!document.querySelector('dialog[open]'))cleanView(false);});
+addEventListener('keydown',e=>{if(e.code==='Escape'&&document.body.classList.contains('clean-view')&&!document.querySelector('dialog[open]'))editing?editMode(false):cleanView(false);});
 addEventListener('keydown',e=>{if(mode!=='walk'||document.querySelector('dialog[open]')||e.target.matches('button,a,input'))return;if(movement[e.code]){e.preventDefault();keys.add(movement[e.code]);requestRender();}});
 addEventListener('keyup',e=>{if(movement[e.code])keys.delete(movement[e.code]);});
 const furnitureRay=new THREE.Raycaster(),pointer=new THREE.Vector2();
-let furnitureDrag=null;
+let furnitureDrag=null,lastFurnitureTap=null;
 addEventListener('keydown',e=>{
   if(e.code==='Space'&&furnitureDrag) {
     e.preventDefault();
@@ -423,6 +431,9 @@ function placeFurniture(object,position,angle=object.rotation.y) {
     object.userData.colliders[i].splice(0,4,bounds.min.x,bounds.min.z,bounds.max.x,bounds.max.z);
   });
   requestRender(true);
+}
+function rotateFurniture(object) {
+  placeFurniture(object,object.position.clone(),(object.rotation.y+Math.PI/2)%(Math.PI*2));saveFurniture();
 }
 function saveFurniture() {
   try {
@@ -454,7 +465,7 @@ function endFurnitureDrag() {
   orbit.enabled=mode==='overview';renderer.domElement.style.cursor='';
 }
 renderer.domElement.addEventListener('pointerdown',e=>{
-  if(mode!=='overview'||e.button!==0||furnitureDrag)return;
+  if(mode!=='overview'||!editing||(e.pointerType==='mouse'&&e.button!==0)||furnitureDrag)return;
   aimFurniture(e);
   let object=furnitureRay.intersectObjects(scene.children,true).find(hit=>{
     if(!hit.object.isMesh)return false;
@@ -478,7 +489,15 @@ renderer.domElement.addEventListener('pointermove',e=>{
   point.add(offset);
   object.position.x=point.x;object.position.z=point.z;requestRender(true);
 });
-for(const event of ['pointerup','pointercancel','lostpointercapture'])renderer.domElement.addEventListener(event,e=>{
+renderer.domElement.addEventListener('pointerup',e=>{
+  const object=furnitureDrag?.object;
+  if(e.pointerId!==furnitureDrag?.id)return;
+  const rotate=e.pointerType==='touch'&&lastFurnitureTap?.object===object&&e.timeStamp-lastFurnitureTap.time<600;
+  endFurnitureDrag();
+  if(rotate){rotateFurniture(object);lastFurnitureTap=null;}
+  else lastFurnitureTap={object,time:e.timeStamp};
+});
+for(const event of ['pointercancel','lostpointercapture'])renderer.domElement.addEventListener(event,e=>{
   if(e.pointerId===furnitureDrag?.id)endFurnitureDrag();
 });
 addEventListener('blur',()=>{endFurnitureDrag();keys.clear();drag=null;});

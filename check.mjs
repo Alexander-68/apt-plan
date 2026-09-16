@@ -88,6 +88,12 @@ try {
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('body').evaluate(body=>body.classList.contains('clean-view')),false,'Escape restores the HUD');
   assert.equal(await page.locator('#clean').getAttribute('aria-pressed'),'false');
+  await page.locator('#edit').click();
+  assert.equal(await page.locator('body').evaluate(body=>body.classList.contains('clean-view')),true,'Edit mode enters Clean View');
+  assert.equal(await page.locator('#edit').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#clean span').textContent,'Finish editing');
+  await page.locator('#clean').click();
+  assert.equal(await page.locator('#edit').getAttribute('aria-pressed'),'false','Finish editing prevents accidental furniture moves');
   await page.waitForFunction(()=>renderCheck().pending===0);
   await page.evaluate(()=>{
     Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});
@@ -161,6 +167,10 @@ try {
   await page.locator('#walls').click();assert.equal(await page.locator('#walls').getAttribute('aria-pressed'),'true');
   await page.locator('#walls').click();await page.locator('#light').click();
   await page.evaluate(()=>furnitureCamera());
+  const locked=await page.evaluate(()=>furnitureCheck()[0]);
+  await page.mouse.move(locked.screen.x,locked.screen.y);await page.mouse.down();await page.mouse.move(locked.screen.x-10,locked.screen.y-6);await page.mouse.up();
+  assert.deepEqual(await page.evaluate(()=>furnitureCheck()[0].position),locked.position,'Furniture stays fixed outside Edit mode');
+  await page.locator('#edit').click();
   await page.waitForFunction(()=>renderCheck().pending===0);
   const count=await page.evaluate(()=>furnitureCheck().length);
   assert.equal(count,15,'All six chairs, two desks and seven tables are movable');
@@ -204,9 +214,10 @@ try {
   assert.equal(await page.evaluate(()=>cameraCheck().dragging),false,'Cancelled drag is cleared');
   assert.equal(await page.evaluate(()=>cameraCheck().enabled),true,'Cancelled drag restores orbit');
   await page.mouse.up();
-  await page.locator('#reset').click();
+  await page.locator('#clean').click();await page.locator('#reset').click();
   const defaultLayout=await page.evaluate(()=>layoutCheck());
   await page.evaluate(()=>furnitureCamera());
+  await page.locator('#edit').click();
   const desk=await page.evaluate(()=>furnitureCheck()[13]);
   await page.mouse.move(desk.screen.x,desk.screen.y);await page.mouse.down();
   await page.keyboard.press('Space');await page.mouse.up();
@@ -232,7 +243,7 @@ try {
   assert.notDeepEqual(savedLayout[4],defaultLayout[4],'Chair moves before saving');
   const originalBounds=defaultLayout[3][2],rotatedBounds=savedLayout[3][2];
   assert.ok(Math.abs((rotatedBounds[2]-rotatedBounds[0])-(originalBounds[3]-originalBounds[1]))<1e-8,'Rotated table swaps collision width and depth');
-  await page.locator('#walk').click();await page.locator('#overview').click();
+  await page.locator('#clean').click();await page.locator('#walk').click();await page.locator('#overview').click();
   assert.deepEqual(await page.evaluate(()=>layoutCheck()),savedLayout,'Changing views preserves furniture');
   await page.reload();await page.waitForFunction(()=>window.apartment);
   assert.deepEqual(await page.evaluate(()=>layoutCheck()),savedLayout,'Reload restores furniture and walking bounds');
@@ -259,13 +270,27 @@ try {
   await page.screenshot({path:'artifacts/mobile.png'});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),390);
   const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1});
+  await mobile.route('**/app.js',async route=>{
+    const response=await route.fetch();
+    await route.fulfill({response,body:await response.text()+`\nwindow.touchFurniture=()=>{const object=furniture[0],p=object.children[0].getWorldPosition(new THREE.Vector3()).project(camera);return {x:(p.x+1)*innerWidth/2,y:(1-p.y)*innerHeight/2,angle:object.rotation.y};};`});
+  });
   mobile.on('pageerror',e=>errors.push(e.message));
   await mobile.goto('http://127.0.0.1:4173');await mobile.waitForFunction(()=>window.apartment);
+  const cdp=await mobile.context().newCDPSession(mobile);
+  await mobile.locator('#edit').tap();
+  const touchBefore=await mobile.evaluate(()=>touchFurniture());
+  for(let i=0;i<2;i++) {
+    const target=await mobile.evaluate(()=>touchFurniture());
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:target.x,y:target.y}]});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  }
+  const touchAfter=await mobile.evaluate(()=>touchFurniture());
+  assert.ok(Math.abs(touchAfter.angle-(touchBefore.angle+Math.PI/2)%(Math.PI*2))<1e-9,'Double-tap rotates furniture 90 degrees');
+  await mobile.locator('#clean').tap();
   await mobile.locator('#walk').tap();
   assert.ok(await mobile.locator('#touch-controls').isVisible());
   const mobileStart=await mobile.evaluate(()=>apartment.position);
   const pad=await mobile.locator('[data-move="forward"]').boundingBox();
-  const cdp=await mobile.context().newCDPSession(mobile);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:pad.x+pad.width/2,y:pad.y+pad.height/2}]});
   await mobile.waitForTimeout(500);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
