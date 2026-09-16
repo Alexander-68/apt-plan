@@ -4,6 +4,8 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { SCALE, X, Z, outline, rooms, walls, windows, doors, inside, fitsFurniture } from './plan.js';
 import { wallCorners, cornerSpan } from './wall-edges.js';
+import { createStool } from './stool.js';
+import { createStool2 } from './stool2.js';
 
 const $ = s => document.querySelector(s);
 const scene = new THREE.Scene();
@@ -263,7 +265,19 @@ movable(1050,309,()=>{
 bed(1288,451,161,163,M.sage);cabinet(1112,402,43,241,2.3,M.oak,'east');
 for(const z of [341,557])movable(1360,z,()=>{cyl(1360,z,20,.46,0,M.oak);solid(1360,z,40,40);lamp(1360,z,.46);});
 plant(1157,301,.8);
-desk(1197,792,42,135);chair(1157,797,-Math.PI/2);cabinet(1198,708,43,99,2.15,M.oak,'west');
+desk(1197,792,42,135);
+const studyStool=movable(1157,797,()=>{
+  const stool=createStool(()=>requestRender());
+  stool.position.set(X(1157),0,Z(797));scene.add(stool);
+  solid(1157,797,.35/SCALE,.35/SCALE);
+});
+studyStool.rotation.y=-Math.PI/2;
+const daughterStool=movable(918,468,()=>{
+  const stool=createStool2();
+  stool.position.set(X(918),0,Z(468));scene.add(stool);
+  solid(918,468,.35/SCALE,.35/SCALE);
+});
+cabinet(1198,708,43,99,2.15,M.oak,'west');
 // Open shelves and books make the study readable from both camera modes.
 for(let j=0;j<3;j++){box(1185,700,16,65,.035,.75+j*.39,M.darkOak);for(let i=0;i<7;i++)box(1179,675+i*7,12,4,.19+(i%3)*.035,.79+j*.39,[M.sage,M.clay,M.linen][i%3]);}
 function toilet(x,z,angle=0) {

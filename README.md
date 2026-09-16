@@ -18,6 +18,10 @@ Drag to orbit; scroll/pinch to zoom. Choose **Walk inside** or a room, then use 
 
 Scale uses the labeled 105 × 188 cm daughter's bed (approximately 160 pixels long). Ceiling height is assumed at 2.8 m. Unmarked measurements and unclear door openings are approximated. Furniture is modeled in Three.js in the drawing's locations; materials, decoration and lighting are a design interpretation. This is an interactive visualization, not a measured construction model.
 
+The Study stool is a reusable `createStool()` component in `stool.js`, in metres, measuring 35 × 35 × 45 cm. Its notched seat, four full-height corner posts and four aprons follow IMG_5719–IMG_5722. Texture UVs sample the wood directly from unmodified IMG_5722 (seat and striped corner joints) and IMG_5720 (legs and aprons), copied into `assets/`. Edge rounding, varnish, leg width and apron thickness are estimated from the photos; photo lighting remains baked into the texture. The stool retains furniture dragging, rotation, collision and saved placement.
+
+`stool2.js` exports `createStool2()`, extracted from the supplied `wooden_stool_3d_viewer.html`. This second 35 × 35 × 45 cm stool sits beside the bed in the daughter’s room, with the original procedural wood, bump maps, finger joints and underside brackets. It uses the apartment’s lighting and furniture controls.
+
 ## Cloudflare Workers deployment
 
 No build command is needed. Set the asset directory to the repository root (`.`), using `npx wrangler deploy --assets .` as the deploy command in Cloudflare's Git integration.

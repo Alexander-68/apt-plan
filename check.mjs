@@ -33,6 +33,36 @@ try {
         return renderShadows(...args);
       };
       window.renderCheck=()=>({frames:renderer.info.render.frame,pending:frameId,shadows:shadowUpdates});
+      window.stoolCheck=()=>{
+        const model=studyStool.children[0],bounds=new THREE.Box3().setFromObject(model);
+        const maps=new Set();model.traverse(o=>{if(o.isMesh)for(const m of [o.material].flat())maps.add(m.map);});
+        return {size:bounds.getSize(new THREE.Vector3()).toArray(),bottom:bounds.min.y,
+          parts:model.children.length,ready:[...maps].every(map=>map.image?.naturalWidth>0),
+          blocked:!canStand(studyStool.position.x,studyStool.position.z),id:studyStool.userData.layoutId};
+      };
+      window.stool2Check=()=>{
+        const model=daughterStool.children[0],bounds=new THREE.Box3().setFromObject(model);
+        return {size:bounds.getSize(new THREE.Vector3()).toArray(),bottom:bounds.min.y,parts:model.children.length,name:model.name,
+          textured:model.children.every(o=>[o.material].flat().every(m=>m.map?.isCanvasTexture&&m.bumpMap?.isCanvasTexture)),
+          inRoom:fitsFurniture([bounds.min.x/SCALE+850,bounds.min.z/SCALE+650,bounds.max.x/SCALE+850,bounds.max.z/SCALE+650],placementWalls,rooms.find(r=>r.id==='daughter').poly),
+          blocked:!canStand(daughterStool.position.x,daughterStool.position.z)};
+      };
+      window.stoolPreview=(second=false)=>{
+        const preview=new THREE.Scene();preview.background=new THREE.Color('#dedbd5');preview.environment=scene.environment;
+        preview.add((second?daughterStool:studyStool).children[0].clone(),new THREE.HemisphereLight('#fff4e8','#827a70',2));
+        const light=new THREE.DirectionalLight('#fff6e9',2);light.position.set(-1,2,1);preview.add(light);
+        light.castShadow=true;Object.assign(light.shadow.camera,{left:-1,right:1,top:1,bottom:-1,near:.1,far:5});
+        light.shadow.mapSize.set(1024,1024);light.shadow.normalBias=.002;
+        const floor=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:'#dedbd5',roughness:1}));
+        floor.rotation.x=-Math.PI/2;floor.position.y=-.001;floor.receiveShadow=true;preview.add(floor);
+        const view=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.01,10);
+        view.position.set(.68,.70,.85);view.lookAt(0,.23,0);renderer.shadowMap.needsUpdate=true;renderer.render(preview,view);
+      };
+      window.stoolInRoom=(second=false)=>{
+        setMode('walk',rooms.find(r=>r.id===(second?'daughter':'study')));
+        camera.position.set(X(second?871:1094),1.2,Z(second?510:841));
+        camera.lookAt((second?daughterStool:studyStool).position.clone().add(new THREE.Vector3(0,.23,0)));requestRender();
+      };
       window.furnitureCheck=()=>furniture.map(object=>{
         const bounds=new THREE.Box3().setFromObject(object);
         const point=new THREE.Vector3(object.position.x,bounds.max.y,object.position.z).project(camera);
@@ -63,7 +93,32 @@ try {
   assert.equal(await page.evaluate(()=>apartment.revision),'185');
   assert.ok(await page.evaluate(()=>apartment.meshes)>100);
   assert.ok(await page.evaluate(()=>checkWallEdges()),'Joined corner and opening lines replace individual block outlines');
+  await page.waitForFunction(()=>stoolCheck().ready);
+  const stool=await page.evaluate(()=>stoolCheck());
+  for(const [i,size] of [.35,.45,.35].entries())assert.ok(Math.abs(stool.size[i]-size)<1e-6,'Stool matches supplied measurements in metres');
+  assert.ok(Math.abs(stool.bottom)<1e-6,'Stool feet touch the floor');
+  assert.equal(stool.parts,9,'Notched seat, four corner posts and four aprons');
+  assert.ok(stool.blocked,'Stool blocks walking');assert.equal(stool.id,'1157,797','Replaces the Study chair');
+  const stool2=await page.evaluate(()=>stool2Check());
+  for(const [i,size] of [.35,.45,.35].entries())assert.ok(Math.abs(stool2.size[i]-size)<1e-6,'Imported stool retains its dimensions');
+  assert.ok(Math.abs(stool2.bottom)<1e-6&&stool2.inRoom&&stool2.blocked,'Stool2 is on the daughter room floor with collision bounds');
+  assert.equal(stool2.name,'stool2');assert.equal(stool2.parts,13,'Imported seat, legs, aprons and underside brackets');
+  assert.ok(stool2.textured,'Imported procedural color and bump maps are present');
   await page.waitForFunction(()=>renderCheck().pending===0);
+  await mkdir('artifacts',{recursive:true});
+  await page.evaluate(()=>{document.body.classList.add('clean-view');stoolPreview();});
+  await page.locator('#viewport canvas').screenshot({path:'artifacts/stool.png'});
+  await page.evaluate(()=>document.body.classList.remove('clean-view'));
+  await page.locator('#reset').click();await page.waitForFunction(()=>renderCheck().pending===0);
+  await page.evaluate(()=>stoolInRoom());await page.waitForFunction(()=>renderCheck().pending===0);
+  await page.screenshot({path:'artifacts/stool-study.png'});
+  await page.locator('#overview').click();await page.waitForFunction(()=>renderCheck().pending===0);
+  await page.evaluate(()=>{document.body.classList.add('clean-view');stoolPreview(true);});
+  await page.locator('#viewport canvas').screenshot({path:'artifacts/stool2.png'});
+  await page.evaluate(()=>document.body.classList.remove('clean-view'));
+  await page.evaluate(()=>stoolInRoom(true));await page.waitForFunction(()=>renderCheck().pending===0);
+  await page.screenshot({path:'artifacts/stool2-daughter.png'});
+  await page.locator('#overview').click();await page.waitForFunction(()=>renderCheck().pending===0);
   const idle=await page.evaluate(()=>renderCheck());
   await page.waitForTimeout(700);
   assert.deepEqual(await page.evaluate(()=>renderCheck()),idle,'Idle overview schedules no frames or shadows');
@@ -91,7 +146,7 @@ try {
   await page.locator('#edit').click();
   assert.equal(await page.locator('body').evaluate(body=>body.classList.contains('clean-view')),true,'Edit mode enters Clean View');
   assert.equal(await page.locator('#edit').getAttribute('aria-pressed'),'true');
-  assert.equal(await page.locator('#clean span').textContent,'Finish editing');
+  assert.equal(await page.locator('#clean span').textContent(),'Finish editing');
   await page.locator('#clean').click();
   assert.equal(await page.locator('#edit').getAttribute('aria-pressed'),'false','Finish editing prevents accidental furniture moves');
   await page.waitForFunction(()=>renderCheck().pending===0);
@@ -171,9 +226,11 @@ try {
   await page.mouse.move(locked.screen.x,locked.screen.y);await page.mouse.down();await page.mouse.move(locked.screen.x-10,locked.screen.y-6);await page.mouse.up();
   assert.deepEqual(await page.evaluate(()=>furnitureCheck()[0].position),locked.position,'Furniture stays fixed outside Edit mode');
   await page.locator('#edit').click();
+  // Clear orbit inertia left by the preceding non-edit drag before measuring furniture-only motion.
+  await page.evaluate(()=>furnitureCamera());
   await page.waitForFunction(()=>renderCheck().pending===0);
   const count=await page.evaluate(()=>furnitureCheck().length);
-  assert.equal(count,15,'All six chairs, two desks and seven tables are movable');
+  assert.equal(count,16,'All five chairs, two stools, two desks and seven tables are movable');
   for(let i=0;i<count;i++) {
     const before=await page.evaluate(i=>furnitureCheck()[i],i);
     assert.ok(before.valid,`Furniture ${i} starts clear of walls`);
@@ -195,7 +252,8 @@ try {
     }
     for(let j=0;j<before.colliders.length;j++)for(let k=0;k<4;k++)
       assert.ok(Math.abs(after.colliders[j][k]-before.colliders[j][k]-(k%2?dz:dx))<1e-8,'Walking bounds follow furniture');
-    assert.ok((await page.evaluate(()=>cameraCheck().position)).every((value,i)=>Math.abs(value-cameraBefore[i])<1e-9),'Dragging furniture does not orbit');
+    const cameraAfter=await page.evaluate(()=>cameraCheck().position);
+    assert.ok(cameraAfter.every((value,i)=>Math.abs(value-cameraBefore[i])<1e-9),`Dragging furniture ${i} does not orbit: ${cameraBefore} -> ${cameraAfter}`);
     assert.equal(await page.evaluate(()=>cameraCheck().enabled),true,'Orbit resumes on release');
     await page.mouse.down();await page.mouse.move(before.screen.x,before.screen.y,{steps:4});await page.mouse.up();
   }
