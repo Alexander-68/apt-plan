@@ -37,3 +37,15 @@ export function inside(x,z,polygon=outline) {
   }
   return hit;
 }
+
+// The plan has only horizontal and vertical boundary edges.
+export function fitsFurniture([x1,z1,x2,z2],obstacles,polygon=outline) {
+  const overlaps=([a,b,c,d])=>x1<c&&x2>a&&z1<d&&z2>b;
+  if(![[x1,z1],[x1,z2],[x2,z1],[x2,z2]].every(([x,z])=>inside(x,z,polygon)))return false;
+  if(obstacles.some(overlaps))return false;
+  // Corner checks alone miss a footprint spanning a notch in a concave outline.
+  return !polygon.some(([x,z],i)=>{
+    const [a,b]=polygon[(i+1)%polygon.length];
+    return overlaps([Math.min(x,a),Math.min(z,b),Math.max(x,a),Math.max(z,b)]);
+  });
+}
