@@ -81,6 +81,13 @@ try {
   await page.locator('#walls').click();await page.waitForFunction(()=>renderCheck().pending===0);
   assert.ok((await page.evaluate(()=>renderCheck())).shadows>orbited.shadows,'Wall change refreshes shadows');
   await page.locator('#walls').click();await page.locator('#reset').click();
+  await page.locator('#clean').click();
+  assert.equal(await page.locator('body').evaluate(body=>body.classList.contains('clean-view')),true,'Clean view hides the HUD');
+  assert.equal(await page.locator('#clean').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('header').isVisible(),false);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('body').evaluate(body=>body.classList.contains('clean-view')),false,'Escape restores the HUD');
+  assert.equal(await page.locator('#clean').getAttribute('aria-pressed'),'false');
   await page.waitForFunction(()=>renderCheck().pending===0);
   await page.evaluate(()=>{
     Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});

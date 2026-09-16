@@ -368,6 +368,12 @@ function updateRoom(){
   }
 }
 $('#overview').onclick=()=>setMode('overview');$('#walk').onclick=()=>setMode('walk');
+function cleanView(on=!document.body.classList.contains('clean-view')) {
+  document.body.classList.toggle('clean-view',on);
+  $('#clean').setAttribute('aria-pressed',String(on));
+  $('#clean').title=on?'Show interface':'Hide interface; Esc restores it';
+}
+$('#clean').onclick=()=>cleanView();
 $('#reset').onclick=()=>{
   endFurnitureDrag();
   for(const object of furniture)placeFurniture(object,object.userData.home,object.userData.homeAngle);
@@ -385,6 +391,7 @@ $('#source').onclick=()=>showDialog('#plan-dialog');$('#help').onclick=()=>showD
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest('dialog').close();
 for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});
 const movement={KeyW:'forward',ArrowUp:'forward',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
+addEventListener('keydown',e=>{if(e.code==='Escape'&&document.body.classList.contains('clean-view')&&!document.querySelector('dialog[open]'))cleanView(false);});
 addEventListener('keydown',e=>{if(mode!=='walk'||document.querySelector('dialog[open]')||e.target.matches('button,a,input'))return;if(movement[e.code]){e.preventDefault();keys.add(movement[e.code]);requestRender();}});
 addEventListener('keyup',e=>{if(movement[e.code])keys.delete(movement[e.code]);});
 const furnitureRay=new THREE.Raycaster(),pointer=new THREE.Vector2();
