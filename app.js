@@ -62,6 +62,8 @@ function texture(kind) {
 const oakTex=texture('oak'), fabricTex=texture('fabric'), stoneTex=texture('stone'), tileTex=texture('tile');
 const M={wall:material('#ece9df'),trim:material('#f5f2e7'),oak:material('#cbb18c',.65,{map:oakTex}),darkOak:material('#806044',.7,{map:oakTex}),stone:material('#e4e1d4',.8,{map:stoneTex}),tile:material('#cdcec2',.65,{map:tileTex}),linen:material('#eee7d8',.95,{map:fabricTex}),sage:material('#829071',.95,{map:fabricTex}),clay:material('#ad785d',.9,{map:fabricTex}),dark:material('#303d35',.6),brass:material('#a68a54',.3,{metalness:.7}),white:material('#f7f5e9',.26),metal:material('#9caaa9',.25,{metalness:.8}),glass:material('#d6e6dc',.12,{transparent:true,opacity:.16,metalness:.1,depthWrite:false}),mirror:material('#a5c0bb',.06,{metalness:1}),leaf:material('#465d33',.8),soil:material('#493c2a')};
 const wallEdgeMaterial=new THREE.LineBasicMaterial({color:'#68685f',toneMapped:false,depthWrite:false});
+M.frame=material('#242321',.4,{metalness:.45});
+M.entryDoor=material('#39251d',.65,{map:oakTex});
 Object.assign(M.wall,{polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
 function mesh(geometry,mat,x,y,z,parent=scene) {const o=new THREE.Mesh(geometry,mat);o.position.set(X(x),y,Z(z));o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
 function box(x,z,w,d,h,y,mat=M.oak,round=0,parent=scene) {
@@ -95,26 +97,68 @@ for(const [x,z,s] of [[480,60,1],[690,115,.85],[1000,55,1.2],[1320,90,1],[1600,2
   }
 }
 for(const [x1,z1,x2,z2,t=12] of walls) {
-  const w=Math.abs(x2-x1)+t,d=Math.abs(z2-z1)+t,x=(x1+x2)/2,z=(z1+z2)/2;
+  const horizontal=z1===z2;
+  // Wall junctions overlap, but an opening's clear span must not be covered by end caps.
+  const meetsOpening=(x,z)=>[...doors,...windows].some(([a,b,c,d])=>horizontal===(b===d)&&
+    ((x===a&&z===b)||(x===c&&z===d)));
+  const start=meetsOpening(x1,z1)?0:t/2,end=meetsOpening(x2,z2)?0:t/2;
+  const w=horizontal?x2-x1+start+end:t,d=horizontal?t:z2-z1+start+end;
+  const x=(x1+x2)/2+(horizontal?(end-start)/2:0),z=(z1+z2)/2+(horizontal?0:(end-start)/2);
   box(x,z,w,d,2.8,0,M.wall,0,architecture);solid(x,z,w,d);
   box(x,z,w+1,d+1,.065,.01,M.trim);
 }
-for(const [x1,z1,x2,z2] of doors) {
+for(const [x1,z1,x2,z2,{head=2.25,style}={}] of doors) {
   const horizontal=z1===z2,x=(x1+x2)/2,z=(z1+z2)/2;
-  box(x,z,horizontal?x2-x1:12,horizontal?12:z2-z1,.55,2.25,M.wall,0,overhead);
-  for(const [a,b] of [[x1,z1],[x2,z2]])box(a,b, horizontal?3:15,horizontal?15:3,2.25,0,M.oak,0,glazing);
+  box(x,z,horizontal?x2-x1:12,horizontal?12:z2-z1,2.8-head,head,M.wall,0,overhead);
+  const frame=style?M.frame:M.oak;
+  for(const [a,b] of [[x1,z1],[x2,z2]])box(a,b,horizontal?3:15,horizontal?15:3,head,0,frame,0,glazing);
+  box(x,z,horizontal?x2-x1:15,horizontal?15:z2-z1,.045,head-.045,frame,0,glazing);
+  if(!style)continue;
+  const leaf=new THREE.Group();leaf.name=style+'-door';glazing.add(leaf);
+  if(style==='entrance') {
+    box(x,z,4,z2-z1-6,head-.06,.02,M.entryDoor,0,leaf);
+    for(const y of [.32,.64,.96,1.28,1.60,1.92])box(x+2.1,z+5,.25,z2-z1-22,.009,y,M.frame,0,leaf);
+    box(x+3,z2-11,1.5,3,.22,.87,M.metal,0,leaf);
+    box(x+4,z2-15,2,10,.022,1.04,M.metal,0,leaf);
+    cyl(x+2.2,z,1,.015,1.48,M.brass,1,leaf).rotation.z=Math.PI/2;
+    solid(x,z,4,z2-z1);
+  } else {
+    // Keep the photographed glazed door open 90 degrees into the balcony for walking.
+    const width=x2-x1-6;
+    box(x,z,width,2,head-.12,.06,M.glass,0,leaf);
+    for(const px of [x1+4,x2-4])box(px,z,4,5,head-.04,.02,M.frame,0,leaf);
+    for(const y of [.03,1.02,head-.07])box(x,z,width,5,.055,y,M.frame,0,leaf);
+    for(const px of [x1+8,x2-8])box(px,z,2,6,1.03,1.09,M.frame,0,leaf);
+    box(x,z,width-12,6,.025,1.09,M.frame,0,leaf);
+    box(x1+9,z-4,10,2,.025,1,M.metal,0,leaf);
+    const hinge=new THREE.Vector3(X(x2),0,Z(z2));
+    for(const part of leaf.children)part.position.sub(hinge);
+    leaf.position.copy(hinge);leaf.position.x-=9*SCALE;leaf.rotation.y=Math.PI/2;
+    solid(x2-9,z2+(x2-x1)/2,6,x2-x1);
+  }
 }
-for(const [x1,z1,x2,z2] of windows) {
-  const horizontal=z1===z2,w=horizontal?x2-x1:8,d=horizontal?8:z2-z1,x=(x1+x2)/2,z=(z1+z2)/2;
-  // Low solid sill remains in the cutaway; glazing and frames appear at full height.
-  box(x,z,w,d,.48,0,M.wall);solid(x,z,w,d);
-  box(x,z,w,d, .55,2.25,M.wall,0,overhead);
-  box(x,z,horizontal?w:2,horizontal?2:d,1.72,.5,M.glass,0,glazing);
-  for(const y of [.5,2.22])box(x,z,w,d,.035,y,M.dark,0,glazing);
-  const n=Math.ceil(Math.hypot(x2-x1,z2-z1)/78);
-  for(let i=0;i<=n;i++)box(x1+(x2-x1)*i/n,z1+(z2-z1)*i/n,3,3,1.76,.48,M.dark,0,glazing);
-  if(z1===270) {
-    for(const px of [x1+10,x2-10])for(let i=0;i<5;i++)cyl(px+i*2.2,278,2,2.22,.12,M.linen,2,glazing);
+for(const [x1,z1,x2,z2,{id,sill,head,panels,rail,sashes=[],sashBottom,open}] of windows) {
+  const horizontal=z1===z2,w=horizontal?x2-x1:16,d=horizontal?16:z2-z1,x=(x1+x2)/2,z=(z1+z2)/2;
+  box(x,z,w,d,sill,0,M.wall,0,architecture).name=id+'-sill';solid(x,z,w,d);
+  box(x,z,w,d,2.8-head,head,M.wall,0,overhead);
+  if(open)continue; // Utility balcony has an open aperture above its masonry parapet.
+  const frame=new THREE.Group();frame.name=id+'-window';glazing.add(frame);
+  // Fractions run along the opening; all frame heights are in metres.
+  const strip=(from,to,bottom,top,depth=5,mat=M.frame)=>box(
+    x1+(x2-x1)*(from+to)/2,z1+(z2-z1)*(from+to)/2,
+    horizontal?(x2-x1)*(to-from):depth,horizontal?depth:(z2-z1)*(to-from),
+    top-bottom,bottom,mat,0,frame);
+  const bar=3/Math.hypot(x2-x1,z2-z1);
+  for(const y of [sill,head-.045])strip(0,1,y,y+.045);
+  if(rail)strip(0,1,rail-.025,rail+.025);
+  for(let i=0;i<=panels;i++)strip(Math.max(0,i/panels-bar/2),Math.min(1,i/panels+bar/2),sill,head).name='mullion';
+  for(let i=0;i<panels;i++)strip(i/panels+bar/2,(i+1)/panels-bar/2,sill+.045,head-.045,1,M.glass).name='pane';
+  for(const i of sashes) {
+    const left=i/panels+bar,right=(i+1)/panels-bar;
+    strip(left,right,sashBottom,sashBottom+.045,7);
+    strip(left,right,head-.08,head-.055,7);
+    for(const side of [left,right-bar/2])strip(side,side+bar/2,sashBottom,head-.055,7);
+    strip((left+right)/2-.025,(left+right)/2+.025,sashBottom+.06,sashBottom+.075,9,M.metal);
   }
 }
 // Structural columns visible in the drawing.
@@ -135,10 +179,10 @@ const halfWallThickness=Math.max(...walls.map(w=>w[4]??12))/2;
 const cornerLines=edgeLines(wallCorners(wallFootprints).flatMap(([x,z])=>
   cornerSpan(x,z,doors,windows,halfWallThickness).map(y=>new THREE.Vector3(X(x),y,Z(z)))),architecture);
 // Only the bottom of each header borders an opening; its top and ends are seams.
-const openingLines=edgeLines([...doors,...windows].flatMap(([x1,z1,x2,z2],i)=>{
-  const horizontal=z1===z2,half=i<doors.length?6:4;
+const openingLines=edgeLines([...doors,...windows].flatMap(([x1,z1,x2,z2,options],i)=>{
+  const horizontal=z1===z2,half=i<doors.length?6:8,head=options?.head??2.25;
   return [-half,half].flatMap(offset=>[[x1,z1],[x2,z2]].map(([x,z])=>
-    new THREE.Vector3(X(x+(horizontal?0:offset)),2.25,Z(z+(horizontal?offset:0)))));
+    new THREE.Vector3(X(x+(horizontal?0:offset)),head,Z(z+(horizontal?offset:0)))));
 }),overhead);
 
 function rug(x,z,w,d,mat=M.linen) {

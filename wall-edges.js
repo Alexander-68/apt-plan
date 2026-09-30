@@ -14,9 +14,10 @@ export function wallCorners(rectangles) {
 
 export function cornerSpan(x,z,doors,windows,halfThickness) {
   const beside=([x1,z1,x2,z2])=>z1===z2
-    ? x>x1&&x<x2&&Math.abs(z-z1)<=halfThickness
-    : z>z1&&z<z2&&Math.abs(x-x1)<=halfThickness;
-  if(doors.some(beside))return [0,2.25];
-  if(windows.some(beside))return [.48,2.25];
+    ? x>=x1&&x<=x2&&Math.abs(z-z1)<=halfThickness
+    : z>=z1&&z<=z2&&Math.abs(x-x1)<=halfThickness;
+  const door=doors.find(beside),window=windows.find(beside);
+  if(door)return [0,door[4]?.head??2.25];
+  if(window)return [window[4].sill,window[4].head];
   return [0,2.8];
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
-import { rooms, X, Z, inside, fitsFurniture } from './plan.js';
+import { rooms, windows, doors, walls, X, Z, inside, fitsFurniture } from './plan.js';
 import { mkdir } from 'node:fs/promises';
 import { wallCorners, cornerSpan } from './wall-edges.js';
 
@@ -8,6 +8,15 @@ assert.deepEqual(wallCorners([[0,0,4,1],[0,0,1,4]]),[[0,0],[0,4],[4,0],[4,1],[1,
 assert.deepEqual(wallCorners([[0,0,2,1],[2,0,4,1]]),[[0,0],[0,1],[4,0],[4,1]],'Straight wall joins have no corner lines');
 assert.deepEqual(cornerSpan(3,1,[[2,0,4,0]],[],1),[0,2.25],'Door jamb stops at header');
 assert.deepEqual(cornerSpan(1,1,[[2,0,4,0]],[],1),[0,2.8],'Adjacent room corner stays full height');
+assert.deepEqual(cornerSpan(1390,450,doors,windows,9),[.85,2.3],'Bedroom side window has a raised sill');
+assert.deepEqual(cornerSpan(600,1095,doors,windows,9),[1.5,2.6],'Guest bathroom has a high window');
+assert.deepEqual(cornerSpan(270,820,doors,windows,9),[0,2.2],'Entrance jamb follows its door height');
+for(const [x1,z1,x2,z2,{id,sill,head}] of windows) {
+  assert.ok(sill>0&&head>sill&&head<2.8,`${id} fits between floor and ceiling`);
+  assert.ok(!walls.some(([a,b,c,d])=>z1===z2
+    ? b===z1&&d===z1&&Math.min(c,x2)>Math.max(a,x1)
+    : a===x1&&c===x1&&Math.min(d,z2)>Math.max(b,z1)),`${id} has a gap in the full-height wall`);
+}
 
 const square=[[0,0],[10,0],[10,10],[0,10]];
 assert.ok(fitsFurniture([1,1,3,3],[],square),'Clear footprint is accepted');
@@ -33,6 +42,30 @@ try {
         return renderShadows(...args);
       };
       window.renderCheck=()=>({frames:renderer.info.render.frame,pending:frameId,shadows:shadowUpdates});
+      window.openingCheck=()=>({
+        covered:windows.filter(([x1,z1,x2,z2])=>architecture.children.some(o=>{
+          if(!o.isMesh||o.name.endsWith('-sill'))return false;
+          const {width,depth}=o.geometry.parameters,x=o.position.x,z=o.position.z;
+          return z1===z2
+            ? Math.abs(z-Z(z1))<depth/2&&Math.min(x+width/2,X(x2))-Math.max(x-width/2,X(x1))>1e-6
+            : Math.abs(x-X(x1))<width/2&&Math.min(z+depth/2,Z(z2))-Math.max(z-depth/2,Z(z1))>1e-6;
+        })).map(w=>w[4].id),
+        panes:Object.fromEntries(glazing.children.filter(o=>o.name.endsWith('-window')).map(o=>
+          [o.name,o.children.filter(c=>c.name==='pane').length])),
+        sills:Object.fromEntries(architecture.children.filter(o=>o.name.endsWith('-sill')).map(o=>
+          [o.name,o.geometry.parameters.height])),
+        entryBlocked:!canStand(X(270),Z(826)),
+        balconyClear:canStand(X(859),Z(950)),
+        balconyAngle:glazing.getObjectByName('balcony-door').rotation.y
+      });
+      window.photoView=(id)=>{
+        const views={living:[660,495,670,270],daughter:[950,495,952,270],
+          'master-north':[1240,540,1239,270],'master-east':[1150,450,1390,450],
+          study:[1110,700,1112,875],bath:[1288,735,1440,714],guest:[598,961,600,1095],
+          utility:[780,953,775,1095],entrance:[440,824,270,826],balcony:[853,780,859,935]};
+        setMode('walk');const [x,z,tx,tz]=views[id];
+        camera.position.set(X(x),1.6,Z(z));camera.lookAt(X(tx),{guest:1.8,bath:1.65,utility:1.6}[id]??1.35,Z(tz));requestRender();
+      };
       window.stoolCheck=()=>{
         const model=studyStool.children[0],bounds=new THREE.Box3().setFromObject(model);
         const maps=new Set();model.traverse(o=>{if(o.isMesh)for(const m of [o.material].flat())maps.add(m.map);});
@@ -93,6 +126,14 @@ try {
   assert.equal(await page.evaluate(()=>apartment.revision),'185');
   assert.ok(await page.evaluate(()=>apartment.meshes)>100);
   assert.ok(await page.evaluate(()=>checkWallEdges()),'Joined corner and opening lines replace individual block outlines');
+  const openings=await page.evaluate(()=>openingCheck());
+  assert.deepEqual(openings.covered,[],'Solid wall ends leave every window frame exposed');
+  assert.deepEqual(openings.panes,{'living-window':3,'daughter-window':2,'master-north-window':3,
+    'master-east-window':4,'bath-window':2,'guest-window':2,'study-window':2},'Photo panel counts; utility has no glazing');
+  assert.equal(openings.sills['utility-sill'],1.12,'Open balcony keeps its protective parapet');
+  assert.equal(openings.sills['study-sill'],1.05,'Study window is above a raised sill');
+  assert.ok(openings.entryBlocked&&openings.balconyClear,'Closed entrance blocks movement; open balcony door permits it');
+  assert.equal(openings.balconyAngle,Math.PI/2,'Balcony leaf is open into the utility room');
   await page.waitForFunction(()=>stoolCheck().ready);
   const stool=await page.evaluate(()=>stoolCheck());
   for(const [i,size] of [.35,.45,.35].entries())assert.ok(Math.abs(stool.size[i]-size)<1e-6,'Stool matches supplied measurements in metres');
@@ -106,6 +147,13 @@ try {
   assert.ok(stool2.textured,'Imported procedural color and bump maps are present');
   await page.waitForFunction(()=>renderCheck().pending===0);
   await mkdir('artifacts',{recursive:true});
+  for(const id of ['living','daughter','master-north','master-east','study','bath','guest','utility','entrance','balcony']) {
+    await page.evaluate(id=>{document.body.classList.add('clean-view');photoView(id);},id);
+    await page.waitForFunction(()=>renderCheck().pending===0);
+    await page.screenshot({path:`artifacts/photo-${id}.png`});
+  }
+  await page.evaluate(()=>document.body.classList.remove('clean-view'));
+  await page.locator('#overview').click();await page.waitForFunction(()=>renderCheck().pending===0);
   await page.evaluate(()=>{document.body.classList.add('clean-view');stoolPreview();});
   await page.locator('#viewport canvas').screenshot({path:'artifacts/stool.png'});
   await page.evaluate(()=>document.body.classList.remove('clean-view'));
