@@ -8,3 +8,5 @@
 @media(max-height:550px){.intro,.palette{display:none}.spaces{left:20px;right:20px;bottom:86px;width:auto}.spaces .panel-heading{display:none}#rooms{display:flex;overflow-x:auto;gap:5px}#rooms button{flex-shrink:0;padding:8px;background:#f7f8f1ed}#rooms .arrow,#rooms .number{display:none}.walking .spaces{padding:0;background:none;backdrop-filter:none}footer{height:80px}#room-caption{top:90px!important}#room-caption h2{font-size:25px!important}.scene-tools{top:92px;flex-direction:row}#touch-controls{bottom:140px!important}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .clean-view header,.clean-view .intro,.clean-view .spaces,.clean-view footer,.clean-view #room-caption,.clean-view #crosshair,.clean-view #touch-controls{display:none}.clean-view .scene-tools{top:16px;right:16px}.clean-view .scene-tools>*:not(#clean){display:none}
+
+.intro .area-stats{display:grid;gap:8px}.area-stats b{font-size:15px;margin-bottom:2px}.area-stats small{font-size:9px}
