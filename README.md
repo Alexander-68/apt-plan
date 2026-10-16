@@ -12,11 +12,34 @@ Open **http://127.0.0.1:4173**. Python 3 serves the static files. Alternatively,
 
 Drag to orbit; scroll/pinch to zoom. Choose **Walk inside** or a room, then use **WASD / arrow keys** and drag to look. A click on the scene locks the mouse; **Esc** releases it. Touch devices have a movement pad. Furniture and walls block movement. Use the daylight switch for an evening lighting study.
 
+## OmniGate bundle
+
+Run `pwsh -File .\build-omnigate.ps1` to create `apt.zip` beside the script,
+then upload that ZIP through OmniGate's **Upload & host app**. No npm process
+or Python server is needed when hosted. Bundle contains runtime files,
+`omnigate.json`, this README, and the house-heart SVG favicon; excludes
+development dependencies, scripts, reference photos, and generated artifacts.
+The build script works from any working directory. Three.js and optional fonts
+still require internet access; this packaging does not make the app offline.
+
+See `HOW_TO_MAKE_OMNIGATE_WEB_APPS.md` for the copied gateway bundle specification.
+UI lives in `index.html` and `style.css`; scene and interaction logic in `app.js`,
+layout in `plan.js` and `wall-edges.js`, furniture components in `stool.js` and
+`stool2.js`. Preserve responsive room navigation, overview/walk modes, readable
+controls, and browser-local furniture placement when tailoring the app.
+
 ## Source and interpretation
+
+### 2026-10-07 designer update
+
+`ref_photos/apt-plan-2026-10-07.jpg` (shown in the app as `assets/plan-2026-10-07.jpg`) refines the original plan; registered on the four structural columns it matches the old footprint, so only local changes were made: the daughter's room door moves to the end of a short entry passage lined in oak, the guest toilet door moves north to sit flush in the refrigerator wall, and window sills/heads follow the plan's `W width/height/sill` annotations.
+
+Interior finishes, built-ins and furniture for the entrance, living/dining, refrigerator wall, kitchen and daughter's room follow `ref_photos/rendering-1…10`. Whitewashed oak, walnut and travertine-veneer textures are sampled from the renderings themselves (`assets/tex-*.jpg`, flat-fielded to remove baked lighting); the leaf mural is the daughter room wall cropped from rendering 8. Walk mode adds window area lights and ambient occlusion to approach the renderings' soft daylight. The main bedroom, study and bathrooms have no renderings and keep the earlier interpretation. Direct sunlit floor patches seen in the renderings are not reproduced.
+
 
 `260801-apartm-plan-F.pdf` is the supplied, single-page raster plan. `assets/plan.png` is its rendered reference, also available in the app. `plan.js` traces the stepped footprint, partitions, windows, openings, room layout and furniture scale from that image.
 
-Scale uses the labeled 105 × 188 cm daughter's bed (approximately 160 pixels long). Ceiling height is assumed at 2.8 m. Unmarked measurements and unclear door openings are approximated. Furniture is modeled in Three.js in the drawing's locations; materials, decoration and lighting are a design interpretation. This is an interactive visualization, not a measured construction model.
+Scale uses the labeled 105 × 188 cm daughter's bed (approximately 160 pixels long). Ceiling height is 2.65 m, with built-ins stopping at 2.35 m under a bulkhead. Unmarked measurements and unclear door openings are approximated. Furniture is modeled in Three.js in the drawing's locations; materials, decoration and lighting are a design interpretation. This is an interactive visualization, not a measured construction model.
 
 Window and exterior door geometry follows the eleven photos in `ref_photos/`, using their filenames to map each wall to the plan. Living/daughter/main-bedroom north glazing has 3/2/3 sections with low sills, lower fixed lights and a left upper sash; the main bedroom's east wall has four sections, a higher sill and end sashes. The study has a raised two-section window, the main bathroom has two sections above the bath, and the guest bathroom has a high two-section window above the toilet. The utility balcony is open above a masonry parapet. The entrance has a closed dark timber door; the kitchen's glazed balcony door is shown open 90 degrees to allow walkthrough access. Opening widths, offsets and heights are photo estimates in `plan.js`, not surveyed dimensions. Blinds and curtains are omitted so the frames remain visible.
 

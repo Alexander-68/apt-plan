@@ -1,18 +1,18 @@
 import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
-import { rooms, windows, doors, walls, X, Z, inside, fitsFurniture } from './plan.js';
+import { rooms, windows, doors, walls, X, Z, CEILING, inside, fitsFurniture } from './plan.js';
 import { mkdir } from 'node:fs/promises';
 import { wallCorners, cornerSpan } from './wall-edges.js';
 
 assert.deepEqual(wallCorners([[0,0,4,1],[0,0,1,4]]),[[0,0],[0,4],[4,0],[4,1],[1,1],[1,4]],'L junction has outer and inner corners without block seams');
 assert.deepEqual(wallCorners([[0,0,2,1],[2,0,4,1]]),[[0,0],[0,1],[4,0],[4,1]],'Straight wall joins have no corner lines');
 assert.deepEqual(cornerSpan(3,1,[[2,0,4,0]],[],1),[0,2.25],'Door jamb stops at header');
-assert.deepEqual(cornerSpan(1,1,[[2,0,4,0]],[],1),[0,2.8],'Adjacent room corner stays full height');
-assert.deepEqual(cornerSpan(1390,450,doors,windows,9),[.85,2.3],'Bedroom side window has a raised sill');
-assert.deepEqual(cornerSpan(600,1095,doors,windows,9),[1.5,2.6],'Guest bathroom has a high window');
+assert.deepEqual(cornerSpan(1,1,[[2,0,4,0]],[],1),[0,CEILING],'Adjacent room corner stays full height');
+assert.deepEqual(cornerSpan(1390,450,doors,windows,9),[.89,2.455],'Bedroom side window follows the W156.5/63+26 annotation');
+assert.deepEqual(cornerSpan(600,1095,doors,windows,9),[1.48,2.26],'Guest bathroom window follows the W78/148 annotation');
 assert.deepEqual(cornerSpan(270,820,doors,windows,9),[0,2.2],'Entrance jamb follows its door height');
 for(const [x1,z1,x2,z2,{id,sill,head}] of windows) {
-  assert.ok(sill>0&&head>sill&&head<2.8,`${id} fits between floor and ceiling`);
+  assert.ok(sill>0&&head>sill&&head<CEILING,`${id} fits between floor and ceiling`);
   assert.ok(!walls.some(([a,b,c,d])=>z1===z2
     ? b===z1&&d===z1&&Math.min(c,x2)>Math.max(a,x1)
     : a===x1&&c===x1&&Math.min(d,z2)>Math.max(b,z1)),`${id} has a gap in the full-height wall`);
@@ -130,8 +130,8 @@ try {
   assert.deepEqual(openings.covered,[],'Solid wall ends leave every window frame exposed');
   assert.deepEqual(openings.panes,{'living-window':3,'daughter-window':2,'master-north-window':3,
     'master-east-window':4,'bath-window':2,'guest-window':2,'study-window':2},'Photo panel counts; utility has no glazing');
-  assert.equal(openings.sills['utility-sill'],1.12,'Open balcony keeps its protective parapet');
-  assert.equal(openings.sills['study-sill'],1.05,'Study window is above a raised sill');
+  assert.equal(openings.sills['utility-sill'],1.22,'Open balcony keeps its protective parapet');
+  assert.equal(openings.sills['study-sill'],1.185,'Study window is above a raised sill');
   assert.ok(openings.entryBlocked&&openings.balconyClear,'Closed entrance blocks movement; open balcony door permits it');
   assert.equal(openings.balconyAngle,Math.PI/2,'Balcony leaf is open into the utility room');
   await page.waitForFunction(()=>stoolCheck().ready);
@@ -278,7 +278,7 @@ try {
   await page.evaluate(()=>furnitureCamera());
   await page.waitForFunction(()=>renderCheck().pending===0);
   const count=await page.evaluate(()=>furnitureCheck().length);
-  assert.equal(count,16,'All five chairs, two stools, two desks and seven tables are movable');
+  assert.equal(count,14,'Three chairs, three stools, a bench, two desks and five tables are movable');
   for(let i=0;i<count;i++) {
     const before=await page.evaluate(i=>furnitureCheck()[i],i);
     assert.ok(before.valid,`Furniture ${i} starts clear of walls`);
@@ -324,7 +324,7 @@ try {
   const defaultLayout=await page.evaluate(()=>layoutCheck());
   await page.evaluate(()=>furnitureCamera());
   await page.locator('#edit').click();
-  const desk=await page.evaluate(()=>furnitureCheck()[13]);
+  const desk=await page.evaluate(()=>furnitureCheck()[11]); // Study desk against its wall
   await page.mouse.move(desk.screen.x,desk.screen.y);await page.mouse.down();
   await page.keyboard.press('Space');await page.mouse.up();
   assert.deepEqual(await page.evaluate(()=>layoutCheck()),defaultLayout,'Rotation alone cannot turn a desk into a wall');

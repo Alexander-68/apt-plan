@@ -1,6 +1,7 @@
 # Upload only the files used by the static app.
 **
 !index.html
+!favicon.svg
 !style.css
 !app.js
 !plan.js
@@ -12,3 +13,5 @@
 !assets/plan.png
 !assets/stool-top.jpg
 !assets/stool-frame.jpg
+!assets/plan-2026-10-07.jpg
+!assets/tex-*.jpg

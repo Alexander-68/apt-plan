@@ -1,3 +1,4 @@
+import { CEILING } from './plan.js';
 // Corners of the union of axis-aligned wall footprints, including inside corners.
 export function wallCorners(rectangles) {
   const xs=[...new Set(rectangles.flatMap(r=>[r[0],r[2]]))];
@@ -19,5 +20,5 @@ export function cornerSpan(x,z,doors,windows,halfThickness) {
   const door=doors.find(beside),window=windows.find(beside);
   if(door)return [0,door[4]?.head??2.25];
   if(window)return [window[4].sill,window[4].head];
-  return [0,2.8];
+  return [0,CEILING];
 }
