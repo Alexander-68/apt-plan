@@ -2,12 +2,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { Reflector } from 'three/addons/objects/Reflector.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { SCALE, X, Z, CEILING, outline, rooms, walls, windows, doors, inside, fitsFurniture } from './plan.js';
 import { wallCorners, cornerSpan } from './wall-edges.js';
 import { createStool } from './stool.js';
@@ -29,10 +23,6 @@ $('#viewport').append(renderer.domElement);
 renderer.domElement.setAttribute('aria-label','3D apartment. Choose Edit furniture to move chairs and tables. Drag elsewhere to orbit; choose Walk inside for keyboard movement.');
 const camera = new THREE.PerspectiveCamera(39,innerWidth/innerHeight,.05,150);
 const orbit = new OrbitControls(camera,renderer.domElement);
-// Ambient occlusion in walk mode supplies the soft corner shading of the designer renderings.
-const composer=new EffectComposer(renderer),occlusion=new GTAOPass(scene,camera,innerWidth,innerHeight);
-occlusion.updateGtaoMaterial({radius:.5,distanceExponent:1.5,thickness:1.5,scale:1.2});occlusion.blendIntensity=.9;
-composer.addPass(new RenderPass(scene,camera));composer.addPass(occlusion);composer.addPass(new OutputPass());
 orbit.enableDamping = true;
 orbit.minDistance=7; orbit.maxDistance=65;
 orbit.maxPolarAngle=Math.PI*.47;
@@ -41,7 +31,8 @@ const environment = new RoomEnvironment();
 scene.environment = pmrem.fromScene(environment,.04).texture;
 scene.environmentIntensity=.22;
 environment.dispose(); pmrem.dispose();
-const hemi = new THREE.HemisphereLight('#ffe3bb','#c7ad86',1.15); scene.add(hemi);
+// Hemisphere light stands in for window daylight; area lights and AO are too slow for embedded GPUs.
+const hemi = new THREE.HemisphereLight('#ffe3bb','#c7ad86',1.4); scene.add(hemi);
 const sun = new THREE.DirectionalLight('#ffe2b4',3.5); sun.position.set(-5,12,-9); scene.add(sun);
 sun.castShadow=true; sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-12,right:12,top:12,bottom:-12,near:.5,far:40});
@@ -225,16 +216,6 @@ for(const [x1,z1,x2,z2,{id,sill,head,panels,rail,sashes=[],sashBottom,open,blind
     const f=(i+.5)/panels,span=(horizontal?x2-x1:z2-z1)/panels-2;
     box(x1+(x2-x1)*f+(horizontal?0:inward*11),z1+(z2-z1)*f+(horizontal?inward*11:0),horizontal?span:1.5,horizontal?1.5:span,top-bottom,bottom,M.blind,0,frame);
   }
-}
-// Daylight enters through the main glazing as soft area light, as in the renderings.
-RectAreaLightUniformsLib.init();
-const DAYLIGHT=2.4,windowLights=[];
-for(const [x1,z1,x2,z2,{id,sill,head}] of windows.filter(w=>['living','daughter','master-north','master-east','study'].includes(w[4].id))) {
-  const horizontal=z1===z2,x=(x1+x2)/2,z=(z1+z2)/2,inward=horizontal?(inside(x,z+12)?1:-1):(inside(x+12,z)?1:-1);
-  const light=new THREE.RectAreaLight('#fff4e6',DAYLIGHT,(horizontal?x2-x1:z2-z1)*SCALE,head-sill);
-  light.position.set(X(x+(horizontal?0:inward*9)),(sill+head)/2,Z(z+(horizontal?inward*9:0)));
-  light.lookAt(X(x+(horizontal?0:inward*100)),(sill+head)/2,Z(z+(horizontal?inward*100:0)));
-  light.name=id+'-daylight';scene.add(light);windowLights.push(light);
 }
 // Structural columns visible in the drawing.
 for(const [x,z,w,d] of [[490,235,70,70],[1420,235,70,70],[1410,905,90,60],[515,905,105,70],[940,963,75,55]]) {
@@ -432,7 +413,7 @@ for(const [x,z,y] of [[437,903,1.74],[446,911,1.5],[440,917,1.26]]) {
   box(x,z,.4,.4,CEILING-y-.07,y+.07,M.black,0,overhead);cyl(x,z,1.6,.05,y+.04,M.brass);
   ball(x,z,y,.055,.055,.055,material('#fff2da',.2,{emissive:'#ffd59a',emissiveIntensity:.9}));
 }
-const mirror=new Reflector(new THREE.PlaneGeometry(104*SCALE,BUILT_IN),{textureWidth:512,textureHeight:1024,color:'#d4d6d2'});
+const mirror=new THREE.Mesh(new THREE.PlaneGeometry(104*SCALE,BUILT_IN),M.mirror);
 mirror.position.set(X(515),BUILT_IN/2,Z(863.4));mirror.rotation.y=Math.PI;overhead.add(mirror);
 box(495,759.6,7,1,.09,1.2,M.black);box(302,759.6,8,1,.13,1.4,M.black);
 box(527.5,774,75,32,.45,0,M.walnut);solid(527.5,774,75,32);
@@ -599,7 +580,7 @@ function art(x,z,w,h,rot=0) {
 art(1210,632,62,1,Math.PI);
 const warmLights=[];
 for(const [x,z] of [[692,424],[733,720],[985,407],[1250,442],[1100,764],[856,805],[1305,747],[507,982],[770,1010],[396,820]]) {
-  const light=new THREE.PointLight('#ffca88',0,5,2);light.position.set(X(x),2.45,Z(z));scene.add(light);warmLights.push(light);
+  const light=new THREE.PointLight('#ffca88',15,5,2);light.visible=false;light.position.set(X(x),2.45,Z(z));scene.add(light);warmLights.push(light);
 }
 
 for(const object of furniture)object.userData.homeAngle=object.rotation.y;
@@ -675,9 +656,8 @@ $('#reset').onclick=()=>{
 $('#walls').onclick=()=>{fullWalls=!fullWalls;wallState();};
 $('#light').onclick=()=>{
   evening=!evening;$('#light').setAttribute('aria-pressed',String(evening));$('#light span').textContent=evening?'Evening':'Daylight';
-  sun.intensity=evening?.15:3.5;hemi.intensity=evening?.55:1.15;fill.intensity=evening?.25:1;scene.environmentIntensity=evening?.12:.22;
-  for(const l of warmLights)l.intensity=evening?15:0;
-  for(const l of windowLights)l.intensity=evening?0:DAYLIGHT;
+  sun.intensity=evening?.15:3.5;hemi.intensity=evening?.55:1.4;fill.intensity=evening?.25:1;scene.environmentIntensity=evening?.12:.22;
+  for(const l of warmLights)l.visible=evening; // hidden lights leave the shaders; intensity 0 would not
   scene.background.set(evening?'#c5c8bf':'#edece5');requestRender();
 };
 function showDialog(id){keys.clear();if(document.pointerLockElement)document.exitPointerLock();$(id).showModal();}
@@ -810,7 +790,7 @@ for(const b of document.querySelectorAll('[data-move]')) {
   b.addEventListener('pointerdown',e=>{e.preventDefault();keys.add(b.dataset.move);requestRender();b.setPointerCapture(e.pointerId);});
   for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>keys.delete(b.dataset.move));
 }
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);requestRender();}
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);requestRender();}
 addEventListener('resize',resize);
 function move(dt) {
   let forward=Number(keys.has('forward'))-Number(keys.has('back')),side=Number(keys.has('right'))-Number(keys.has('left'));
@@ -830,7 +810,7 @@ function renderFrame(time) {
   const walking=mode==='walk'&&keys.size>0&&!document.querySelector('dialog[open]');
   const orbiting=mode==='overview'&&!furnitureDrag&&orbit.update();
   if(walking){move(dt);updateRoom();}
-  if(mode==='walk')composer.render();else renderer.render(scene,camera);
+  renderer.render(scene,camera);
   frameId=0;
   if(walking||orbiting)requestRender();else lastTime=0;
 }
