@@ -39,7 +39,9 @@ Object.assign(sun.shadow.camera,{left:-12,right:12,top:12,bottom:-12,near:.5,far
 sun.shadow.normalBias=.02; sun.shadow.bias=-.0001; sun.shadow.radius=3; sun.shadow.blurSamples=8;
 const fill = new THREE.DirectionalLight('#f2dcbc',1); fill.position.set(7,8,9); scene.add(fill);
 const architecture = new THREE.Group(), glazing = new THREE.Group(), overhead = new THREE.Group();
-scene.add(architecture,glazing,overhead);
+// Ceilings and ceiling mirrors that would hide rooms from above are shown only while walking.
+const walkOnly = new THREE.Group();
+scene.add(architecture,glazing,overhead,walkOnly);
 const colliders=[];
 function material(color,roughness=.75,other={}){return new THREE.MeshStandardMaterial({color,roughness,...other});}
 function texture(kind) {
@@ -60,6 +62,26 @@ function texture(kind) {
     for(let i=0;i<90;i++){c.strokeStyle=`rgba(${rand()>.5?'255,250,240':'150,125,95'},${rand()*.07})`;c.lineWidth=2+rand()*10;c.beginPath();const y=rand()*512;c.moveTo(0,y);c.bezierCurveTo(170,y+rand()*30-15,340,y+rand()*30-15,512,y+rand()*20-10);c.stroke();}
     for(let i=0;i<9000;i++){c.fillStyle=`rgba(120,95,70,${rand()*.08})`;c.fillRect(rand()*512,rand()*512,1+rand()*2,1);}
     c.fillStyle='#c4b49a';c.fillRect(0,0,512,1.5);c.fillRect(0,256,512,1.5);c.fillRect(0,0,1.5,512);
+  } else if(kind==='marble') {
+    // Verde marble (2026-10-28 renderings p07, p08, p10): mottled dark green with pale veins.
+    c.fillStyle='#7a8a71';c.fillRect(0,0,512,512);
+    for(let i=0;i<80;i++){const x=rand()*512,y=rand()*512,r=30+rand()*120,g=c.createRadialGradient(x,y,0,x,y,r),light=rand()>.5;
+      g.addColorStop(0,light?'rgba(160,172,148,.32)':'rgba(40,56,44,.32)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,512,512);}
+    // Soft, wandering veins: a wide faint halo under a thin bright core.
+    for(let i=0;i<6;i++){
+      const pts=[[rand()*512,rand()*512]];for(let k=0;k<4;k++){const [px,py]=pts[pts.length-1];pts.push([px+rand()*200-60,py+rand()*140-70]);}
+      for(const [w,a] of [[9,.05],[3.5,.12],[.9,.5+rand()*.3]]){c.strokeStyle=`rgba(232,236,224,${a})`;c.lineWidth=w*(.6+rand()*.6);c.beginPath();c.moveTo(...pts[0]);
+        for(let k=1;k<pts.length;k++){const [ax,ay]=pts[k-1],[bx,by]=pts[k];c.quadraticCurveTo(ax+(bx-ax)*.5+rand()*30-15,ay+(by-ay)*.5+rand()*30-15,bx,by);}c.stroke();}
+    }
+    for(let i=0;i<6000;i++){c.fillStyle=`rgba(20,32,24,${rand()*.16})`;c.fillRect(rand()*512,rand()*512,2,2);}
+  } else if(kind==='groove') {
+    // Pale honed stone with fine vertical flutes on the main bathroom walls (p07, p08).
+    c.fillStyle='#d9d6ce';c.fillRect(0,0,512,512);
+    for(let x=0;x<512;x+=8){c.fillStyle=`rgba(${rand()>.5?'255,255,250':'125,118,106'},${.05+rand()*.09})`;c.fillRect(x,0,6,512);c.fillStyle='rgba(112,106,96,.2)';c.fillRect(x+6,0,1,512);}
+    for(let i=0;i<4500;i++){c.fillStyle=`rgba(${rand()>.6?'150,132,100':'92,86,76'},${rand()*.22})`;c.fillRect(rand()*512,rand()*512,1+rand()*2,1+rand()*5);}
+  } else if(kind==='reeded') {
+    // Fluted glass: alternating bright and shaded reeds, partly transparent.
+    for(let x=0;x<512;x+=16){const g=c.createLinearGradient(x,0,x+16,0);g.addColorStop(0,'rgba(255,255,252,.9)');g.addColorStop(.5,'rgba(232,230,222,.5)');g.addColorStop(1,'rgba(150,147,138,.85)');c.fillStyle=g;c.fillRect(x,0,16,512);}
   } else if(kind==='pleat') {
     c.fillStyle='#e4e1da';c.fillRect(0,0,512,512);
     for(let y=0;y<512;y+=8){c.fillStyle='rgba(120,115,105,.28)';c.fillRect(0,y,512,1.5);c.fillStyle='rgba(255,255,255,.35)';c.fillRect(0,y+3,512,2);}
@@ -72,6 +94,8 @@ function texture(kind) {
 }
 const floorTex=texture('floor'),travertineTex=texture('travertine'),pleatTex=texture('pleat');
 const oakTex=texture('oak'), fabricTex=texture('fabric'), stoneTex=texture('stone'), tileTex=texture('tile');
+const marbleTex=texture('marble'),grooveTex=texture('groove'),reededTex=texture('reeded');
+marbleTex.wrapS=marbleTex.wrapT=THREE.MirroredRepeatWrapping;
 const M={wall:material('#e9e1d3'),trim:material('#f5f2e7'),oak:material('#cbb18c',.65,{map:oakTex}),darkOak:material('#806044',.7,{map:oakTex}),stone:material('#ada595',.7,{map:travertineTex}),tile:material('#cdcec2',.65,{map:tileTex}),linen:material('#eee7d8',.95,{map:fabricTex}),sage:material('#829071',.95,{map:fabricTex}),clay:material('#ad785d',.9,{map:fabricTex}),dark:material('#303d35',.6),brass:material('#a68a54',.3,{metalness:.7}),white:material('#f7f5e9',.26),metal:material('#9caaa9',.25,{metalness:.8}),glass:material('#d6e6dc',.12,{transparent:true,opacity:.16,metalness:.1,depthWrite:false}),mirror:material('#a5c0bb',.06,{metalness:1}),leaf:material('#465d33',.8),soil:material('#493c2a')};
 const wallEdgeMaterial=new THREE.LineBasicMaterial({color:'#68685f',toneMapped:false,depthWrite:false});
 M.frame=material('#3b3026',.45,{metalness:.35});
@@ -93,6 +117,18 @@ Object.assign(M,{
   led:new THREE.MeshBasicMaterial({color:'#fff3dc'}),boucleShell:material('#e9e4db',1,{map:fabricTex,side:THREE.DoubleSide}),fridgeGap:material('#c4c0b9',.6),soffit:material('#e0d6c4',.9),
 });
 M.blind.userData.tile=[1,1];
+// Main bedroom, study and main bathroom finishes from the 2026-10-28 renderings.
+Object.assign(M,{
+  marble:material('#ffffff',.32,{map:marbleTex}),bathStone:material('#ffffff',.8,{map:grooveTex}),
+  reeded:material('#ffffff',.3,{map:reededTex,transparent:true,opacity:.8,depthWrite:false,side:THREE.DoubleSide}),
+  grass:material('#b3a796',.95,{map:fabricTex}),bedFabric:material('#d8cebf',1,{map:fabricTex}),duvet:material('#efeadf',.95,{map:fabricTex}),
+  pillowTaupe:material('#a8988a',1,{map:fabricTex}),orange:material('#d2843a',.9,{map:fabricTex}),cove:material('#b2bca2',.95,{map:fabricTex,side:THREE.DoubleSide}),
+  batten:material('#e9e3d8',.6),coveUnder:material('#ece6da',.9,{side:THREE.DoubleSide}),frameLight:material('#d8d3c7',.4,{metalness:.45}),pebble:material('#ffffff',.55),
+});
+M.marble.userData.tile=[2.2,2.2];M.bathStone.userData.tile=[.7,.7];M.reeded.userData.tile=[.5,2];
+// Satin metal stands in for the mirrors, as at the entrance: it reads as a mirror without a full live reflection.
+M.satinMirror=material('#cfd6d3',.2,{metalness:.9,envMapIntensity:2.2});
+M.walnutTwoSided=M.walnut.clone();M.walnutTwoSided.side=THREE.DoubleSide;
 M.entryDoor=material('#39251d',.65,{map:oakTex});
 Object.assign(M.wall,{polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1});
 function mesh(geometry,mat,x,y,z,parent=scene) {const o=new THREE.Mesh(geometry,mat);o.position.set(X(x),y,Z(z));o.castShadow=!mat.transparent;o.receiveShadow=true;parent.add(o);return o;}
@@ -153,7 +189,7 @@ for(const [x1,z1,x2,z2,t=12] of walls) {
 for(const [x1,z1,x2,z2,{head=2.25,style}={}] of doors) {
   const horizontal=z1===z2,x=(x1+x2)/2,z=(z1+z2)/2;
   box(x,z,horizontal?x2-x1:12,horizontal?12:z2-z1,CEILING-head,head,M.wall,0,overhead);
-  const frame=style==='flush'?M.paint:style?M.frame:M.oak;
+  const frame=['flush','hidden','slide','reeded'].includes(style)?M.paint:style?M.frame:M.oak;
   for(const [a,b] of [[x1,z1],[x2,z2]])box(a,b,horizontal?3:15,horizontal?15:3,head,0,frame,0,glazing);
   box(x,z,horizontal?x2-x1:15,horizontal?15:z2-z1,.045,head-.045,frame,0,glazing);
   if(!style)continue;
@@ -165,6 +201,31 @@ for(const [x1,z1,x2,z2,{head=2.25,style}={}] of doors) {
     for(const part of leaf.children)part.position.sub(hinge);
     leaf.position.copy(hinge);leaf.position.x-=8*SCALE;leaf.rotation.y=Math.PI/2;
     solid(x2-8,z2+(x2-x1)/2,4,x2-x1);
+  } else if(style==='hidden') {
+    // Main bedroom: flush battened white-oak leaf (p04, p05), shown open against the wardrobe end for walking.
+    const len=z2-z1-2,cx=x1+6+len/2,cz=z1+2.5;
+    box(cx,cz,len,3,head-.01,0,M.whiteOak,0,leaf);
+    stripWall(x1+8,cz,x1+4+len,cz+1.5,'south',head-.03,11,leaf,false);
+    box(x1+6+len-5,cz+3,1,1,.16,1.0,M.steel,0,leaf);
+    solid(cx,cz,len,3);
+  } else if(style==='slide') {
+    // Main bathroom: battened white-oak sliding leaf, parked open over the plain wall on the bedroom side (p05, p06).
+    const w=x2-x1+6,cx=x1+3-w/2,cz=z1-8.5;
+    box(cx,cz,w,3,head-.02,.01,M.whiteOak,0,leaf);
+    stripWall(cx-w/2+1,cz-1.5,cx+w/2-1,cz,'north',head-.04,5,leaf,false);
+    box(x1,cz-1,w*2,4,.03,head,M.paint,0,leaf);
+  } else if(style==='reeded') {
+    // Study: two reeded-glass sliding leaves with a clear lower band (p06), stacked on the desk side for walking.
+    const lw=(x2-x1)/2+2;
+    for(const [i,dz] of [[0,-3],[1,3]]) {
+      const lx=x2-lw/2-i*9,lz=z+dz,top=head-.03;
+      box(lx,lz,lw-4,.6,top-.74,.73,M.reeded,0,leaf);
+      box(lx,lz,lw-4,.4,.69,.04,M.glass,0,leaf);
+      for(const px of [lx-lw/2+1,lx,lx+lw/2-1])box(px,lz,px===lx?1.2:2,2.2,top,0,M.frameLight,0,leaf);
+      for(const y of [0,.71,top-.025])box(lx,lz,lw,2.2,.025,y,M.frameLight,0,leaf);
+      solid(lx,lz,lw,3);
+    }
+    box(x,z,x2-x1,9,.03,head-.03,M.frameLight,0,leaf);
   } else if(style==='entrance') {
     box(x,z,4,z2-z1-6,head-.06,.02,M.entryDoor,0,leaf);
     for(const y of [.32,.64,.96,1.28,1.60,1.92])box(x+2.1,z+5,.25,z2-z1-22,.009,y,M.frame,0,leaf);
@@ -461,7 +522,7 @@ function cubbies(z1,z2,cols,y1=1.42,y2=2.12,rows=3) {
 cubbies(662,700,2);cubbies(704,770,4);cubbies(773,818,3);
 for(const [z,s] of [[812,1],[824,.9]]){ball(930,z,.95,.07*s,.06*s,.07*s,material('#a48a66',1,{map:fabricTex}));ball(930,z,1.02,.045,.045,.045,material('#9cc24a',.5));}
 led(903,790,1,280,.01,CEILING-.012,overhead);led(929,652,52,1,.01,CEILING-.012,overhead);
-cabinet(994,710,33,120,BUILT_IN,M.whiteOak,'east');cabinet(994,819,33,90,BUILT_IN,M.whiteOak,'east');
+
 
 // Daughter's room (renderings 8–10): leaf mural, light-oak bed, arched white sliding wardrobe, oak-lined entry, hanging shelves.
 {
@@ -516,11 +577,137 @@ box(840,338,1.6,106,.02,1.02,M.lacquer);for(const z of [330,383])box(844,z,.6,.6
 for(const z of [318,356])box(846,z,38,3,.62,.38,M.linen,.02);
 for(let i=0;i<7;i++)box(838,312+i*2.2,14,1.8,.19+(i%3)*.03,1.425,[M.lacquer,M.clay,M.linen][i%3]);
 ball(838,345,1.82,.07,.07,.03,M.charcoal);box(837,330,2,12,.16,1.135,M.lightOak);for(let i=0;i<6;i++)ball(838,372+i,1.17,.03,.05,.03,M.leaf);
-// Main bedroom and study keep the earlier interpretation; no renderings cover them yet.
-bed(1288,451,161,163,M.sage);cabinet(1112,402,43,241,2.3,M.oak,'east');
-for(const z of [341,557])movable(1360,z,()=>{cyl(1360,z,20,.46,0,M.oak);solid(1360,z,40,40);lamp(1360,z,.46);});
-plant(1157,301,.8);
-desk(1197,792,42,135);
+// 2026-10-28 plan and renderings p01–p10: main bedroom, study and main bathroom.
+// Whitewashed-oak panelling with slender raised battens of mixed lengths (p04–p06, p09).
+function stripWall(x1,z1,x2,z2,face,top=2.48,seed=7,parent=architecture,panel=true) {
+  let s=seed*7919+1;const r=()=>((s=(s*16807)%2147483647)/2147483647);
+  const along=face==='east'||face==='west',n={north:-1,south:1,west:-1,east:1}[face],len=along?z2-z1:x2-x1;
+  if(panel)box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,top,0,M.whiteOak,0,parent);
+  const f=(n>0?(along?x2:z2):(along?x1:z1))+n*.65;
+  for(let p=2+r()*3;p<len-2;p+=1.6+r()*4.2) {
+    const w=.7+r()*.8,kind=r(),c=(along?z1:x1)+p;let y0,y1;
+    if(kind<.5){y1=top-.01;y0=.3+r()*1.5;}else if(kind<.8){y0=0;y1=.3+r()*.5;}else continue;
+    box(along?f:c,along?c:f,along?1.3:w,along?w:1.3,y1-y0,y0,M.batten,0,parent);
+  }
+}
+const BED_TOP=2.48; // bedroom perimeter band underside; window heads sit just below it
+// Wardrobe on the daughter-room wall, rounded toward the vestibule; walnut reveals pair the leaves (p03, p04, p09).
+{
+  const x1=1086,x2=1135,z1=278,z2=570,r=30,h=BED_TOP;
+  const s=new THREE.Shape();
+  s.moveTo(X(x1),-Z(z1));s.lineTo(X(x2),-Z(z1));s.lineTo(X(x2),-Z(z2-r));
+  s.absarc(X(x2-r),-Z(z2-r),r*SCALE,0,-Math.PI/2,true);s.lineTo(X(x1),-Z(z2));s.lineTo(X(x1),-Z(z1));
+  const geo=new THREE.ExtrudeGeometry(s,{depth:h,bevelEnabled:false,curveSegments:16}).rotateX(-Math.PI/2);
+  worldUV(geo,M.whiteOak.userData.tile);
+  const body=new THREE.Mesh(geo,M.whiteOak);body.castShadow=body.receiveShadow=true;scene.add(body);
+  solid((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1);
+  const doors=6,dw=(z2-r-z1)/doors;
+  for(let i=1;i<doors;i++)box(x2+.3,z1+i*dw,.8,i%2?.5:1.6,h-.06,.06,i%2?M.reveal:M.walnut);
+  box(x2+.3,z1+(z2-r-z1)/2,.8,z2-r-z1,.006,.72,M.reveal);
+  box(x2+.3,(z1+z2-r)/2,1.2,z2-r-z1,.06,0,M.walnut);
+  for(const [y,hh] of [[.72,.006],[0,.06]]) {
+    const arc=mesh(new THREE.CylinderGeometry((r+.5)*SCALE,(r+.5)*SCALE,hh,16,1,true,Math.PI/2,Math.PI/2),hh>.01?M.walnutTwoSided:M.reveal,x2-r,y+hh/2,z2-r);arc.castShadow=false;
+  }
+  const a=Math.PI/4,seam=box(x2-r+Math.cos(a)*(r+.4),z2-r+Math.sin(a)*(r+.4),.8,1.6,h-.06,.06,M.walnut);seam.rotation.y=-a;
+  box(x1+(x2-r-x1)/2,z2+.3,x2-r-x1,.8,h-.06,.06,M.whiteOak);
+}
+// Perimeter band with a sage fascia and LED cove around a raised centre; the vestibule ceiling stays low (p01–p05).
+{
+  const rr=(x1,z1,x2,z2,r,p)=>{const R=r*SCALE,t=-Z(z1),b=-Z(z2);
+    p.moveTo(X(x1+r),t);p.lineTo(X(x2-r),t);p.absarc(X(x2-r),t-R,R,Math.PI/2,0,true);p.lineTo(X(x2),b+R);
+    p.absarc(X(x2-r),b+R,R,0,-Math.PI/2,true);p.lineTo(X(x1+r),b);p.absarc(X(x1+r),b+R,R,-Math.PI/2,-Math.PI,true);
+    p.lineTo(X(x1),t-R);p.absarc(X(x1+r),t-R,R,Math.PI,Math.PI/2,true);return p;};
+  const hole=[1152,322,1342,586,62],inset=(d)=>{const [a,b,c,e,r]=hole;return [a+d,b+d,c-d,e-d,r-d];};
+  const outer=new THREE.Shape([[1086,278],[1383,278],[1383,634],[1219,634],[1219,652],[1086,652]].map(([x,z])=>new THREE.Vector2(X(x),-Z(z))));
+  outer.holes.push(rr(...hole,new THREE.Path()));
+  const under=new THREE.Mesh(new THREE.ShapeGeometry(outer,24).rotateX(-Math.PI/2),M.coveUnder);under.position.y=BED_TOP;overhead.add(under);
+  const ring=(d1,d2,depth,mat,y)=>{const sh=rr(...inset(d1),new THREE.Shape());sh.holes.push(rr(...inset(d2),new THREE.Path()));
+    const o=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth,bevelEnabled:false,curveSegments:24}).rotateX(-Math.PI/2),mat);o.position.y=y;o.castShadow=false;overhead.add(o);return o;};
+  ring(0,1.5,.12,M.cove,BED_TOP);ring(1.5,3.5,.012,M.led,BED_TOP+.12);
+  slot(1141,300,1145,560,BED_TOP);
+}
+// East wall: white wainscot and ledge, plantation shutters closed in the centre bays and folded beside the end sashes (p01, p02).
+box(1381.5,451,3,306,.89,0,M.lacquer);box(1377.5,451,6,322,.035,.89,M.lacquer);
+for(const z of [337.6,375.25,412.9,488.1,525.75,563.4])box(1379.8,z,.6,.5,.82,.04,M.reveal);
+for(const z of [296,605])box(1379,z,6,6,2.455-.925,.925,M.lacquer,0,glazing);box(1379,450.5,6,315,.05,2.43,M.lacquer,0,glazing);
+function shutter(z1,z2,y1=.93,y2=2.43,x=1379,p=glazing) {
+  const w=z2-z1,zc=(z1+z2)/2,mid=(y1+y2)/2;
+  for(const z of [z1+1.8,z2-1.8])box(x,z,1.8,3.6,y2-y1,y1,M.lacquer,0,p);
+  for(const y of [y1,mid-.03,y2-.06])box(x,zc,1.8,w,.06,y,M.lacquer,0,p);
+  for(let y=y1+.09;y<y2-.07;y+=.064){if(Math.abs(y-mid)<.05)continue;const o=box(x,zc,.5*1.6,w-6,.05,y,M.lacquer,0,p);o.rotation.z=.55;o.castShadow=false;}
+}
+const bay=(601-300)/4;
+shutter(300+bay,300+2*bay);shutter(300+2*bay,300+3*bay);
+shutter(300+bay-bay*.32,300+bay-1,.93,2.43,1377);shutter(300+3*bay+1,300+3*bay+bay*.32,.93,2.43,1377);
+// Channel-tufted upholstered bed with its head against the window wall (p02).
+{
+  const L=172,W=158,cx=1279,cz=455,head=cx+L/2;
+  box(cx,cz,L,W,.24,.1,M.bedFabric,.03);solid(cx,cz,L+16,W);
+  for(const dx of [-L/2+6,L/2-6])for(const dz of [-W/2+6,W/2-6])box(cx+dx,cz+dz,3,3,.1,0,M.walnut);
+  box(cx,cz,L-4,W-4,.2,.34,M.linen,.05);
+  box(cx-12,cz,L-22,W+5,.07,.53,M.duvet,.03);
+  for(const s of [-1,1])box(cx-12,cz+s*(W/2+2),L-22,2,.32,.28,M.duvet,.01);box(cx-L/2-2,cz,2,W+5,.32,.28,M.duvet,.01);
+  for(let i=0;i<6;i++)box(head+4,cz-W/2-4+(i+.5)*(W+8)/6,8,(W+8)/6-.6,.92,.2,M.bedFabric,.04);
+  for(const s of [-1,1]){const p=box(head-18,cz+s*36,22,68,.24,.6,M.linen,.07);p.rotation.z=-.35;
+    box(head-34,cz+s*33,10,56,.15,.6,M.pillowTaupe,.05);}
+}
+function chChair(x,z,angle=0) {
+  // Wishbone-era lounge desk chair: walnut frame, curved back rail, orange cushion (p02, p10).
+  const group=movable(x,z,()=>{
+    for(const dx of [-17,17]){box(x+dx,z-15,2.6,2.6,.43,0,M.walnut);box(x+dx,z+14,2.6,2.6,.74,0,M.walnut);}
+    box(x,z,38,34,.04,.41,M.walnut,.01);box(x,z-1,36,32,.05,.45,M.orange,.02);
+    mesh(new THREE.CylinderGeometry(.24,.24,.07,24,1,true,-1.1,2.2),M.walnutTwoSided,x,.72,z-3);
+    solid(x,z,38,36);
+  });
+  group.rotation.y=angle;
+}
+movable(1351,560,()=>{
+  cyl(1351,560,21,.03,.55,M.walnut);cyl(1351,560,19,.11,.44,M.walnut);box(1351-19,560,1,12,.012,.5,M.reveal);
+  for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4;box(1351+Math.cos(a)*14,560+Math.sin(a)*14,2.4,2.4,.44,0,M.walnut);}
+  cyl(1351,560,16,.025,.14,M.walnut);solid(1351,560,42,42);
+});
+chChair(1310,338,-Math.PI/2);
+movable(1349,338,()=>{
+  box(1349,338,46,82,.035,.74,M.walnut,.01);
+  for(const dz of [-35,35]){for(const dx of [-17,17])box(1349+dx,338+dz,1.6,1.6,.74,0,M.lacquer);box(1349,338+dz,1.4,1.4,.02,.12,M.lacquer);box(1349,338+dz,36,1.4,.02,.7,M.lacquer);}
+  solid(1349,338,46,82);
+});
+// Battens beside the bathroom door and a lit reveal on the study jamb (p05, p06).
+stripWall(1350,631.5,1383,634,'north',BED_TOP,3);
+box(1080+6+.6,646,1.2,12,BED_TOP,0,M.whiteOak,0,architecture);
+led(1219.6,634.6,1.2,1.2,BED_TOP,0);
+
+// Study (p05, p06, p09, p10): marble wall behind a grasscloth desk, floating shelves, white wardrobe and a metallic mirror strip.
+box(1218,764,2,212,CEILING,0,M.marble,0,architecture);
+{
+  const x1=1165,x2=1216,z1=668,z2=866,cx=(x1+x2)/2,w=x2-x1;
+  box(cx,(z1+z2)/2,w,z2-z1,.06,.70,M.grass,.01);box(cx+1,(z1+z2)/2,w-2,z2-z1,.08,.62,M.grass);
+  box(cx,708,w,80,.62,0,M.grass);box(cx,z2-1.5,w,3,.62,0,M.grass);solid(cx,(z1+z2)/2,w,z2-z1);
+  for(const y of [.205,.41,.62])box(x1-.2,708,.5,80,.008,y,M.reveal);
+  for(const z of [708,748,808])box(x1-.2,z,.5,.5,z===708?.62:.08,z===708?0:.62,M.reveal);
+  box(x1-.2,(748+z2)/2,.5,z2-748,.008,.62,M.reveal);
+  box(1192,812,22,30,.012,.76,M.steel,.004);const screen=box(1204,812,1,30,.21,.772,M.screen);screen.rotation.z=.18;
+  cyl(1203,726,4,.17,.76,M.glass,4);for(let i=0;i<9;i++)ball(1203+Math.cos(i*1.3)*(4+i),726+Math.sin(i*1.3)*(4+i),1.0+(i%3)*.05,.03,.012,.04,material('#93a58b',.8));
+  for(const [y,za,zb] of [[1.12,672,750],[1.42,672,860],[1.72,700,812]]) {
+    box(1203,(za+zb)/2,26,zb-za,.02,y,M.lacquer,0,glazing);
+  }
+  for(const z of [770,840])box(1191,z,.5,.5,CEILING-1.42,1.42,M.lacquer,0,glazing);
+  for(const [za,zb,y] of [[674,712,1.142],[712,740,1.442]])box(1205,(za+zb)/2,24,zb-za,.27,y,M.lacquer,.006,glazing);
+  for(let i=0;i<12;i++)box(1206,760+i*4.5,16,3.6,.2+(i%4)*.025,1.44,[M.linen,M.charcoal,M.lacquer,M.taupe][i%4],0,glazing);
+  for(const o of [ball(1200,800,1.78,.07,.05,.03,M.lacquer),ball(1200,795,1.81,.03,.03,.02,M.lacquer),cyl(1205,690,4,.14,1.162,M.lacquer,2.5)])glazing.attach(o);
+}
+joinery(1016,846,1163,866,0,.8,'north',3,M.lacquer);box(1089.5,856,147,20,.02,.8,M.lacquer);
+joinery(977,659,1010,760,0,BUILT_IN,'east',2,M.lacquer);joinery(977,805,1010,866,0,BUILT_IN,'east',1,M.lacquer);bulkhead(977,659,1010,866);
+// The mirror strip runs from floor to ceiling on the wardrobe wall and continues across the ceiling to the marble wall.
+// Like the entrance mirror it is a metallic surface rather than a live reflection.
+box(993.5,782.5,33,45,CEILING,0,M.paint,0,architecture);
+{
+  const wallMirror=new THREE.Mesh(new THREE.PlaneGeometry(45*SCALE,CEILING),M.satinMirror);
+  wallMirror.position.set(X(1010.3),CEILING/2,Z(782.5));wallMirror.rotation.y=Math.PI/2;architecture.add(wallMirror);
+  const ceilingMirror=new THREE.Mesh(new THREE.PlaneGeometry(207*SCALE,45*SCALE),M.satinMirror);
+  ceilingMirror.position.set(X(1113.5),CEILING-.004,Z(782.5));ceilingMirror.rotation.x=Math.PI/2;walkOnly.add(ceilingMirror);
+  for(const z of [760,805])led(1113.5,z,207,.6,.006,CEILING-.012,walkOnly);
+}
 const studyStool=movable(1157,797,()=>{
   const stool=createStool(()=>requestRender());
   stool.position.set(X(1157),0,Z(797));scene.add(stool);
@@ -532,9 +719,6 @@ const daughterStool=movable(918,468,()=>{
   stool.position.set(X(918),0,Z(468));scene.add(stool);
   solid(918,468,.35/SCALE,.35/SCALE);
 });
-cabinet(1198,708,43,99,2.15,M.oak,'west');
-// Open shelves and books make the study readable from both camera modes.
-for(let j=0;j<3;j++){box(1185,700,16,65,.035,.75+j*.39,M.darkOak);for(let i=0;i<7;i++)box(1179,675+i*7,12,4,.19+(i%3)*.035,.79+j*.39,[M.sage,M.clay,M.linen][i%3]);}
 function toilet(x,z,angle=0) {
   const group=new THREE.Group();scene.add(group);group.position.set(X(x),0,Z(z));const parts=[];
   parts.push(box(x,z+16,28,13,.72,0,M.white,.045));parts.push(ball(x,z,.25,.13,.24,.19,M.white));
@@ -548,18 +732,55 @@ function vanity(x,z,w,d,front='south') {
   if(front==='east')box(x-w/2+2,z,2,d,.85,1.13,M.mirror,.01);
   else box(x,z+d/2-1,w,2,.85,1.13,M.mirror,.01);
 }
-vanity(1251,706,32,66,'east');toilet(1272,792,-Math.PI/2);
-// Extruding a shape with a hole gives the tub a real basin and rounded rim.
+// Main bathroom (p06–p08): fluted pale stone, verde marble floor, floating battened vanity under a large round mirror,
+// freestanding tub on a pebble bed below the window, frameless glass shower in the corner.
+for(const [x,z,w,d,h,y] of [[1232,757.5,2,223,CEILING,0],[1331.5,868,199,2,CEILING,0],[1430.5,650.5,2,9,CEILING,0],
+  [1430.5,819.5,2,99,CEILING,0],[1430.5,712.5,2,115,.89,0],[1430.5,712.5,2,115,CEILING-2.44,2.44]])box(x,z,w,d,h,y,M.bathStone,0,architecture);
+for(const [x1,x2] of [[1233,1290],[1350,1429.5]])box((x1+x2)/2,647,x2-x1,2,CEILING,0,M.whiteOak,0,architecture);
+box(1320,640,60,12,.008,.004,M.marble);
+{
+  const c=box(1331.5,757.5,199,223,.02,2.45,M.trim,0,walkOnly);c.castShadow=false;
+  for(const z of [649,866])led(1331.5,z,197,.8,.006,2.444,walkOnly);
+}
+// Vanity: white battened front, marble top with an integrated basin, wall tap.
+box(1256,702.5,46,85,.42,.38,M.lacquer);solid(1256,702.5,48,85);
+{let s=3;for(let z=662;z<742;z+=2.2+((s=(s*16807)%2147483647)%40)/10)box(1279.5,z,1.4,1+(s%9)/10,.4,.39,M.lacquer);}
+box(1256.5,702.5,49,87,.045,.80,M.marble,.006);box(1260,702.5,28,44,.006,.843,material('#3f4c3b',.25));
+box(1236,702.5,2,2,.2,.845,M.steel);box(1241,702.5,9,1.4,.015,1.0,M.steel);box(1250,728,6,6,.16,.845,material('#7d7869',.3,{metalness:.3}));
+{
+  const r=.66,cy=1.80,top=2.43,phi=Math.asin((top-cy)/r),round=(rad)=>{const s=new THREE.Shape();s.absarc(0,0,rad,phi,Math.PI-phi,true);return s;};
+  for(const [rad,mat,x] of [[r+.012,M.led,1233.15],[r,M.satinMirror,1233.4]]) {
+    const o=new THREE.Mesh(new THREE.ShapeGeometry(round(rad),48),mat);o.position.set(X(x),cy,Z(722));o.rotation.y=Math.PI/2;scene.add(o);
+  }
+}
+toilet(1257,772,-Math.PI/2);
+// Freestanding tub on a bed of river pebbles; wall mixer with hand shower on the north wall.
 const tubShape=new THREE.Shape();tubShape.absellipse(0,0,.30,.56,0,Math.PI*2,false);
 const tubHole=new THREE.Path();tubHole.absellipse(0,0,.245,.49,0,Math.PI*2,true);tubShape.holes.push(tubHole);
 const tubGeo=new THREE.ExtrudeGeometry(tubShape,{depth:.43,bevelEnabled:true,bevelThickness:.025,bevelSize:.02,bevelSegments:3,steps:1});tubGeo.rotateX(-Math.PI/2);
-mesh(tubGeo,M.white,1393,.06,710);solid(1393,710,58,103);
-const tubBottom=cyl(1393,710,21,.07,.05,M.white);tubBottom.scale.z=2;
-const water=mesh(new THREE.CircleGeometry(1,48),material('#b6d1ca',.13,{metalness:.15}),1393,.24,710);water.rotation.x=-Math.PI/2;water.scale.set(.242,.486,1);water.castShadow=false;
-box(1393,660,2,2,.65,0,M.metal);box(1388,660,11,2,.025,.64,M.metal);
-box(1399,822,66,77,.025,.018,M.tile);box(1364,821,1,83,1.95,.04,M.glass,0,glazing);
-box(1428,819,2,2,1.85,.2,M.metal);box(1418,819,20,2,.025,2.05,M.metal);cyl(1410,819,8,.025,2.02,M.metal);
-cabinet(1289,855,116,22,.5);box(1289,855,110,19,.03,.55,M.linen,.015);
+mesh(tubGeo,M.white,1387,.07,710);solid(1387,710,58,103);
+const tubBottom=cyl(1387,710,21,.07,.06,M.white);tubBottom.scale.z=2;
+const water=mesh(new THREE.CircleGeometry(1,48),material('#b6d1ca',.13,{metalness:.15}),1387,.25,710);water.rotation.x=-Math.PI/2;water.scale.set(.242,.486,1);water.castShadow=false;
+{
+  let s=17;const rand=()=>((s=(s*16807)%2147483647)/2147483647);
+  const count=420,pebbles=new THREE.InstancedMesh(new THREE.SphereGeometry(1,10,6),M.pebble,count),m=new THREE.Matrix4(),q=new THREE.Quaternion(),col=new THREE.Color();
+  for(let i=0;i<count;i++) {
+    const x=1349+rand()*78,z=651+rand()*114,a=.018+rand()*.02;
+    m.compose(new THREE.Vector3(X(x),.012,Z(z)),q.setFromAxisAngle(new THREE.Vector3(0,1,0),rand()*3),new THREE.Vector3(a*(1+rand()*.5),.014+rand()*.01,a));
+    pebbles.setMatrixAt(i,m);pebbles.setColorAt(i,col.setHSL(.09+rand()*.03,.08+rand()*.08,.5+rand()*.18));
+  }
+  pebbles.receiveShadow=pebbles.castShadow=true;scene.add(pebbles);
+}
+box(1387,648.5,8,2,.04,.72,M.steel);box(1382,648.5,1.5,2,.42,.72,M.steel);box(1382,649.5,2,3,.16,1.1,M.steel);
+// Shower: green curb, frameless glass front and return, ceiling rain head, riser and shelf.
+for(const [x,z,w,d] of [[1352,818,3,100],[1391,768,78,3]])box(x,z,w,d,.03,0,M.marble);
+box(1352,818,1,98,2.0,.03,M.glass,0,glazing);box(1391,768,77,1,2.0,.03,M.glass,0,glazing);
+box(1352,818,1.3,100,.025,2.03,M.steel,0,glazing);box(1391,768,78,1.3,.025,2.03,M.steel,0,glazing);
+box(1352,768,1.5,1.5,2.06,0,M.steel,0,glazing);for(const z of [790,846])box(1352,z,2,3,.08,z<800?1.7:.4,M.steel,0,glazing);
+box(1351,812,1,1,.3,.95,M.steel,0,glazing);solid(1352,818,3,100);solid(1391,768,78,3);
+box(1416,818,22,22,.012,2.3,M.steel);box(1416,818,1.2,1.2,.14,2.31,M.steel);
+box(1429,818,2,2,1.1,.95,M.steel);box(1429,818,2,34,.05,1.0,M.steel);box(1395,866,40,6,.012,1.12,M.steel);cyl(1410,866,2,.17,1.132,M.charcoal);
+joinery(1233,844,1345,867,.3,.5,'north',2,M.whiteOak);box(1289,855.5,112,23,.03,.8,M.marble);
 vanity(514,1062,67,39);toilet(594,1056);box(425,1007,74,133,.022,.02,M.tile);
 box(466,1020,1,133,1.95,.04,M.glass,0,glazing);box(394,974,2,2,1.8,.25,M.metal);cyl(404,974,9,.035,2.02,M.metal);
 // Utility balcony: laundry, deep sink and external condenser.
@@ -568,16 +789,6 @@ const washer=mesh(new THREE.CylinderGeometry(.2,.2,.04,32),M.dark,678,.45,1079);
 const drum=mesh(new THREE.CylinderGeometry(.155,.155,.045,32),M.glass,678,.45,1081);drum.rotation.x=Math.PI/2;
 box(678,1079,42,1,.085,.74,M.metal);vanity(677,976,43,52,'east');
 box(939,1044,40,62,.72,0,M.white,.018);for(let i=0;i<10;i++)box(918,1021+i*5,1,2,.45,.14,M.metal);
-// Wall art, slender frame, restrained abstract composition.
-function art(x,z,w,h,rot=0) {
-  const c=document.createElement('canvas');c.width=256;c.height=320;const ctx=c.getContext('2d');ctx.fillStyle='#e8dfcc';ctx.fillRect(0,0,256,320);ctx.fillStyle='#829078';ctx.beginPath();ctx.arc(128,125,82,Math.PI,0);ctx.lineTo(210,260);ctx.lineTo(46,260);ctx.fill();ctx.fillStyle='#bc8a66';ctx.beginPath();ctx.arc(160,196,56,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ece6d8';ctx.fillRect(0,240,125,80);
-  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
-  const group=new THREE.Group();group.position.set(X(x),1.6,Z(z));group.rotation.y=rot;scene.add(group);
-  const frame=new THREE.Mesh(new THREE.BoxGeometry(w*SCALE,h,.035),M.darkOak);group.add(frame);
-  const pic=new THREE.Mesh(new THREE.PlaneGeometry(w*SCALE-.04,h-.04),material('#ffffff',.9,{map:tex}));pic.position.z=.02;group.add(pic);
-  glazing.add(group);
-}
-art(1210,632,62,1,Math.PI);
 const warmLights=[];
 for(const [x,z] of [[692,424],[733,720],[985,407],[1250,442],[1100,764],[856,805],[1305,747],[507,982],[770,1010],[396,820]]) {
   const light=new THREE.PointLight('#ffca88',15,5,2);light.visible=false;light.position.set(X(x),2.45,Z(z));scene.add(light);warmLights.push(light);
@@ -595,7 +806,7 @@ function canStand(x,z) {
 }
 function wallState() {
   const full=mode==='walk'||fullWalls;
-  architecture.scale.y=full?1:.29;glazing.visible=full;overhead.visible=full;ceiling.visible=mode==='walk';garden.visible=mode==='walk';
+  architecture.scale.y=full?1:.29;glazing.visible=full;overhead.visible=full;ceiling.visible=walkOnly.visible=mode==='walk';garden.visible=mode==='walk';
   $('#walls').setAttribute('aria-pressed',String(full));$('#walls').disabled=mode==='walk';
   $('#walls span').textContent=full?'Cutaway':'Full walls';
   requestRender(true);

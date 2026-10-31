@@ -324,7 +324,7 @@ try {
   const defaultLayout=await page.evaluate(()=>layoutCheck());
   await page.evaluate(()=>furnitureCamera());
   await page.locator('#edit').click();
-  const desk=await page.evaluate(()=>furnitureCheck()[11]); // Study desk against its wall
+  const desk=await page.evaluate(()=>furnitureCheck()[11]); // Bedroom desk against its wall
   await page.mouse.move(desk.screen.x,desk.screen.y);await page.mouse.down();
   await page.keyboard.press('Space');await page.mouse.up();
   assert.deepEqual(await page.evaluate(()=>layoutCheck()),defaultLayout,'Rotation alone cannot turn a desk into a wall');
