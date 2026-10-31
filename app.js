@@ -748,9 +748,16 @@ box(1256,702.5,46,85,.42,.38,M.lacquer);solid(1256,702.5,48,85);
 box(1256.5,702.5,49,87,.045,.80,M.marble,.006);box(1260,702.5,28,44,.006,.843,material('#3f4c3b',.25));
 box(1236,702.5,2,2,.2,.845,M.steel);box(1241,702.5,9,1.4,.015,1.0,M.steel);box(1250,728,6,6,.16,.845,material('#7d7869',.3,{metalness:.3}));
 {
-  const r=.66,cy=1.80,top=2.43,phi=Math.asin((top-cy)/r),round=(rad)=>{const s=new THREE.Shape();s.absarc(0,0,rad,phi,Math.PI-phi,true);return s;};
-  for(const [rad,mat,x] of [[r+.012,M.led,1233.15],[r,M.satinMirror,1233.4]]) {
-    const o=new THREE.Mesh(new THREE.ShapeGeometry(round(rad),48),mat);o.position.set(X(x),cy,Z(722));o.rotation.y=Math.PI/2;scene.add(o);
+  // p07: a large circle trimmed flat by the ceiling and by a vertical edge on the north side; only its curved
+  // lower-left arc shows, sweeping from the ceiling over the toilet down below the vanity tap. Backlit along its edge.
+  const R=1.16,cy=2.41,cz=728,top=2.45-cy,right=(cz-684)*SCALE;
+  const cut=(grow)=>{
+    const r=R+grow,t=top+grow,e=right+grow,s=new THREE.Shape(),left=-Math.sqrt(r*r-t*t),low=-Math.sqrt(r*r-e*e);
+    s.moveTo(left,t);s.lineTo(e,t);s.lineTo(e,low);s.absarc(0,0,r,Math.atan2(low,e),Math.atan2(t,left),true);return s;
+  };
+  // Local +x faces north after the quarter turn, so the flat side sits toward the bathroom door.
+  for(const [grow,mat,x] of [[.012,M.led,1233.15],[0,M.satinMirror,1233.4]]) {
+    const o=new THREE.Mesh(new THREE.ShapeGeometry(cut(grow),64),mat);o.position.set(X(x),cy,Z(cz));o.rotation.y=Math.PI/2;o.castShadow=false;scene.add(o);
   }
 }
 toilet(1257,772,-Math.PI/2);
