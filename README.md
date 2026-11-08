@@ -41,7 +41,7 @@ Interior finishes, built-ins and furniture for the entrance, living/dining, refr
 `ref_photos/rendering-261028/` (plan plus renderings p01–p10) drives the main bedroom, study and main bathroom. Per the new plan, the study entrance moves to a sliding door off a short bedroom vestibule, and the bathroom gets a sliding door. Main bedroom: rounded white-oak wardrobe with walnut reveals, battened panelling, a perimeter ceiling band with a sage fascia and LED cove, plantation shutters on the east window, a channel-tufted bed against the window wall, a walnut desk with an orange-cushioned chair, and a side table. Study: a verde-marble wall, a grasscloth desk and drawers, floating white shelves, a white wardrobe, and a two-leaf reeded-glass sliding door that is clear at the bottom. Main bathroom: fluted pale stone walls, a verde-marble floor, a floating battened vanity under a round mirror, a freestanding tub on pebbles, and a frameless corner shower. Like the entrance mirror, the bathroom mirror (a large circle trimmed flat by the ceiling and a vertical edge, showing only its lower-left arc) and the study's floor-to-ceiling-and-ceiling mirror strip use a satin metal material instead of a live reflection; the ceiling parts appear only in walk mode. All doors are shown open so you can walk through. Marble and fluted textures are procedural approximations. Direct sunlit floor patches seen in the renderings are not reproduced.
 
 
-`260801-apartm-plan-F.pdf` is the supplied, single-page raster plan. `assets/plan.png` is its rendered reference, also available in the app. `plan.js` traces the stepped footprint, partitions, windows, openings, room layout and furniture scale from that image.
+`assets/plan.png` is the rendered reference of the supplied single-page raster plan `260801-apartm-plan-F.pdf`, which is no longer bundled with or linked from the app. `plan.js` traces the stepped footprint, partitions, windows, openings, room layout and furniture scale from that image.
 
 Scale uses the labeled 105 × 188 cm daughter's bed (approximately 160 pixels long). Ceiling height is 2.65 m, with built-ins stopping at 2.35 m under a bulkhead. Unmarked measurements and unclear door openings are approximated. Furniture is modeled in Three.js in the drawing's locations; materials, decoration and lighting are a design interpretation. This is an interactive visualization, not a measured construction model.
 
@@ -55,7 +55,7 @@ The Study stool is a reusable `createStool()` component in `stool.js`, in metres
 
 No build command is needed. Set the asset directory to the repository root (`.`), using `npx wrangler deploy --assets .` as the deploy command in Cloudflare's Git integration.
 
-`.assetsignore` allows only the app's HTML, CSS, JavaScript, plan image, and source PDF to be uploaded. It excludes installed dependencies, screenshots, Git data, and development files. Git's `.gitignore` does not control Wrangler's asset uploads. `artifacts/` is already ignored by Git.
+`.assetsignore` allows only the app's HTML, CSS, JavaScript and asset images to be uploaded. It excludes installed dependencies, screenshots, Git data, and development files. Git's `.gitignore` does not control Wrangler's asset uploads. `artifacts/` is already ignored by Git.
 
 Commit and push these files before retrying the deployment. See [Cloudflare's asset exclusion documentation](https://developers.cloudflare.com/workers/static-assets/binding/#excluding-certain-files-from-being-uploaded).
 

@@ -262,8 +262,6 @@ try {
     await page.locator(`button[data-room="${id}"]`).click();await page.waitForTimeout(100);
     await page.screenshot({path:`artifacts/${id}.png`});
   }
-  await page.locator('#source').click();assert.ok(await page.locator('#plan-dialog').isVisible());
-  await page.locator('#plan-dialog [data-close]').click();
   await page.locator('#help').click();assert.ok(await page.locator('#help-dialog').isVisible());
   await page.keyboard.press('Escape');
   await page.locator('#overview').click();assert.equal(await page.evaluate(()=>apartment.mode),'overview');

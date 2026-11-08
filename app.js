@@ -888,7 +888,7 @@ $('#light').onclick=()=>{
   scene.background.set(evening?'#c5c8bf':'#edece5');requestRender();
 };
 function showDialog(id){keys.clear();if(document.pointerLockElement)document.exitPointerLock();$(id).showModal();}
-$('#source').onclick=()=>showDialog('#plan-dialog');$('#help').onclick=()=>showDialog('#help-dialog');
+$('#help').onclick=()=>showDialog('#help-dialog');
 for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest('dialog').close();
 for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});
 const movement={KeyW:'forward',ArrowUp:'forward',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};

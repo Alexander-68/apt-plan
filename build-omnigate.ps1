@@ -4,7 +4,6 @@ $ErrorActionPreference = 'Stop'
 $bundleFiles = @(
     'index.html', 'style.css', 'app.js', 'plan.js', 'wall-edges.js',
     'stool.js', 'stool2.js', 'favicon.svg', 'omnigate.json', 'README.md',
-    '260801-apartm-plan-F.pdf',
     'assets/plan.png', 'assets/stool-top.jpg', 'assets/stool-frame.jpg',
     'assets/plan-2026-10-07.jpg', 'assets/tex-whiteoak.jpg', 'assets/tex-walnut.jpg',
     'assets/tex-kitchen-stone.jpg', 'assets/tex-mural.jpg'
