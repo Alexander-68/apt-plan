@@ -1,0 +1,320 @@
+{
+  "app.js": {
+    "mtime": 1794148778.548177,
+    "seen": 1794148866.7640984,
+    "ast_hash": "f8dcc2959a07037dbccdcfce5121afd1",
+    "semantic_hash": ""
+  },
+  "check.mjs": {
+    "mtime": 1794148783.1217566,
+    "seen": 1794148866.764109,
+    "ast_hash": "f2694adea63cb16cf0878a6e26d174ff",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1789478666.3490622,
+    "seen": 1794138061.9201503,
+    "ast_hash": "655ded82912f2d87ed6a24ef0a465171",
+    "semantic_hash": "655ded82912f2d87ed6a24ef0a465171"
+  },
+  "plan.js": {
+    "mtime": 1793378814.8126676,
+    "seen": 1794138061.9201512,
+    "ast_hash": "2d7debb3960b8bb727a0f29e885ffcac",
+    "semantic_hash": "2d7debb3960b8bb727a0f29e885ffcac"
+  },
+  "stool.js": {
+    "mtime": 1789574846.3617058,
+    "seen": 1794138061.9201527,
+    "ast_hash": "46ec08db0effbec6a66e873fd7e1bf00",
+    "semantic_hash": "46ec08db0effbec6a66e873fd7e1bf00"
+  },
+  "stool2.js": {
+    "mtime": 1789575753.067012,
+    "seen": 1794138061.9201536,
+    "ast_hash": "13f029d3cc62b03f4f977bcc112dd613",
+    "semantic_hash": "13f029d3cc62b03f4f977bcc112dd613"
+  },
+  "wall-edges.js": {
+    "mtime": 1792168960.9741144,
+    "seen": 1794138061.9201546,
+    "ast_hash": "7134e6a92b559b070d855369182dfb7a",
+    "semantic_hash": "7134e6a92b559b070d855369182dfb7a"
+  },
+  "README.md": {
+    "mtime": 1794148789.5205421,
+    "seen": 1794148866.7641335,
+    "ast_hash": "2136a33fe4526558cf30cc0b55bca6c5",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1794148783.1051338,
+    "seen": 1794148866.7641351,
+    "ast_hash": "d64e0057afc987d7ca0acb4cecbfc425",
+    "semantic_hash": ""
+  },
+  "assets/plan-2026-10-07.jpg": {
+    "mtime": 1792171874.7928915,
+    "seen": 1794138061.9201612,
+    "ast_hash": "cd3733ef3335638b57540b90c7637b71",
+    "semantic_hash": "cd3733ef3335638b57540b90c7637b71"
+  },
+  "assets/plan.png": {
+    "mtime": 1789477555.106309,
+    "seen": 1794138061.9201622,
+    "ast_hash": "ae7de1edc8ed0bf0afbc13726fffdda0",
+    "semantic_hash": "ae7de1edc8ed0bf0afbc13726fffdda0"
+  },
+  "assets/stool-frame.jpg": {
+    "mtime": 1789572605.969457,
+    "seen": 1794138061.9201634,
+    "ast_hash": "9759674e3e1317efd25998386a952765",
+    "semantic_hash": "9759674e3e1317efd25998386a952765"
+  },
+  "assets/stool-top.jpg": {
+    "mtime": 1789572579.58986,
+    "seen": 1794138061.9201643,
+    "ast_hash": "b6c8da5035492883eedc4c58c26cbcfd",
+    "semantic_hash": "b6c8da5035492883eedc4c58c26cbcfd"
+  },
+  "assets/tex-kitchen-stone.jpg": {
+    "mtime": 1792168941.7901537,
+    "seen": 1794138061.9201653,
+    "ast_hash": "fe85575fff7536bb58c4af8464126070",
+    "semantic_hash": "fe85575fff7536bb58c4af8464126070"
+  },
+  "assets/tex-mural.jpg": {
+    "mtime": 1792168941.801393,
+    "seen": 1794138061.9201667,
+    "ast_hash": "4c24c32c0bdf1ef9fc10683a285c1080",
+    "semantic_hash": "4c24c32c0bdf1ef9fc10683a285c1080"
+  },
+  "assets/tex-walnut.jpg": {
+    "mtime": 1792170790.9836617,
+    "seen": 1794138061.9201677,
+    "ast_hash": "41839dd115adb7fc1cbe2b6fb523cc1b",
+    "semantic_hash": "41839dd115adb7fc1cbe2b6fb523cc1b"
+  },
+  "assets/tex-whiteoak.jpg": {
+    "mtime": 1792170230.0017273,
+    "seen": 1794138061.9201686,
+    "ast_hash": "352cc867c31761ec9e529f06e2681d54",
+    "semantic_hash": "352cc867c31761ec9e529f06e2681d54"
+  },
+  "favicon.svg": {
+    "mtime": 1791097022.122069,
+    "seen": 1794138061.9201698,
+    "ast_hash": "8556eba538ab1f2edb954bfaf1f40400",
+    "semantic_hash": "8556eba538ab1f2edb954bfaf1f40400"
+  },
+  "ref_photos/apt-plan-2026-10-07.jpg": {
+    "mtime": 1792166747.913859,
+    "seen": 1794138061.920171,
+    "ast_hash": "fcee9e2daccf655448799e76964c38e5",
+    "semantic_hash": "fcee9e2daccf655448799e76964c38e5"
+  },
+  "ref_photos/balcony_door_view from_kitchen.jpg": {
+    "mtime": 1790783787.3274915,
+    "seen": 1794138061.9201717,
+    "ast_hash": "319340b3f05caa94a2b7eeef63cc74e6",
+    "semantic_hash": "319340b3f05caa94a2b7eeef63cc74e6"
+  },
+  "ref_photos/daughter_room_windows.jpg": {
+    "mtime": 1790783783.50476,
+    "seen": 1794138061.9201732,
+    "ast_hash": "55f54aa03e9632f00afe60ac50494387",
+    "semantic_hash": "55f54aa03e9632f00afe60ac50494387"
+  },
+  "ref_photos/entrance_door_vew from living room.jpg": {
+    "mtime": 1790783786.8209832,
+    "seen": 1794138061.9201741,
+    "ast_hash": "6081ed0a79d35fa85cf90b24e6bfd62c",
+    "semantic_hash": "6081ed0a79d35fa85cf90b24e6bfd62c"
+  },
+  "ref_photos/guest_bathroom_window.jpg": {
+    "mtime": 1790783786.1782281,
+    "seen": 1794138061.9201753,
+    "ast_hash": "12a547393e4930a166de86e742aba50d",
+    "semantic_hash": "12a547393e4930a166de86e742aba50d"
+  },
+  "ref_photos/living_room_windows.jpg": {
+    "mtime": 1790783783.1910937,
+    "seen": 1794138061.9201763,
+    "ast_hash": "fa8c0c19822633f39cdf95348f36e5bc",
+    "semantic_hash": "fa8c0c19822633f39cdf95348f36e5bc"
+  },
+  "ref_photos/main_bathroom_window.jpg": {
+    "mtime": 1790783785.6367924,
+    "seen": 1794138061.9201775,
+    "ast_hash": "9e8abd93b4ed35da1e39ef2155fd0b53",
+    "semantic_hash": "9e8abd93b4ed35da1e39ef2155fd0b53"
+  },
+  "ref_photos/main_bedroom_both_walls_windows.jpg": {
+    "mtime": 1790783784.9098907,
+    "seen": 1794138061.9201784,
+    "ast_hash": "6725e81fabe78826034e00d5d3cad926",
+    "semantic_hash": "6725e81fabe78826034e00d5d3cad926"
+  },
+  "ref_photos/main_bedroom_windows_wall_facing_right_on_plan.jpg": {
+    "mtime": 1790783784.5620284,
+    "seen": 1794138061.9201794,
+    "ast_hash": "9ec44d81a41715e8cb77887d1cbd6734",
+    "semantic_hash": "9ec44d81a41715e8cb77887d1cbd6734"
+  },
+  "ref_photos/main_bedroom_windows_wall_facing_up_on_plan.jpg": {
+    "mtime": 1790783784.1739192,
+    "seen": 1794138061.9201806,
+    "ast_hash": "c1f9a74ac6ebc73d04be849a449f8286",
+    "semantic_hash": "c1f9a74ac6ebc73d04be849a449f8286"
+  },
+  "ref_photos/rendering-1-view from the entrance door inside apartment.jpg": {
+    "mtime": 1792155559.1153655,
+    "seen": 1794138061.9201815,
+    "ast_hash": "867e94b81a3c8b7956ff7d636ba6efaf",
+    "semantic_hash": "867e94b81a3c8b7956ff7d636ba6efaf"
+  },
+  "ref_photos/rendering-10-straight view daughter room from the bed.jpg": {
+    "mtime": 1792155560.2347863,
+    "seen": 1794138061.9201827,
+    "ast_hash": "1e45734ad7e5f2b1d5381b4db1cf7e6b",
+    "semantic_hash": "1e45734ad7e5f2b1d5381b4db1cf7e6b"
+  },
+  "ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg": {
+    "mtime": 1792155559.2004147,
+    "seen": 1794138061.920184,
+    "ast_hash": "a18927563bb1fb7ec8edbd3dbcda4ae4",
+    "semantic_hash": "a18927563bb1fb7ec8edbd3dbcda4ae4"
+  },
+  "ref_photos/rendering-261028/apt-plan-261028.png": {
+    "mtime": 1793376709.721412,
+    "seen": 1794138061.9201849,
+    "ast_hash": "be0e95599dacf79732dfa0507c17f742",
+    "semantic_hash": "be0e95599dacf79732dfa0507c17f742"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p01-main-bedroom-bed-is-blurred-window-shaed-can be moved.jpg": {
+    "mtime": 1793375736.4425197,
+    "seen": 1794138061.920186,
+    "ast_hash": "1afb3f4fd095ed1dd9e0cd5cf4064a80",
+    "semantic_hash": "1afb3f4fd095ed1dd9e0cd5cf4064a80"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p02-main-bedroom-window shades-opened.jpg": {
+    "mtime": 1793375737.0659409,
+    "seen": 1794138061.920187,
+    "ast_hash": "46e522d051282404e6422b3cff295f25",
+    "semantic_hash": "46e522d051282404e6422b3cff295f25"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p03-main-bedroom-vew-from-the-inner-corner-to-entrance-bed-is-blurred.jpg": {
+    "mtime": 1793375737.8789113,
+    "seen": 1794138061.9201882,
+    "ast_hash": "5f54f84d6e899fb6c5e76046d0d218b3",
+    "semantic_hash": "5f54f84d6e899fb6c5e76046d0d218b3"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p04-main-bedroom-veiw-from-bed-to-main-closet.jpg": {
+    "mtime": 1793375738.5807774,
+    "seen": 1794138061.9201891,
+    "ast_hash": "55e6c706667d4de8f7d3e06efbd3a2db",
+    "semantic_hash": "55e6c706667d4de8f7d3e06efbd3a2db"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p05-view-from-inside-bedroom-to-study-room-sliding-studyroom-door-is-opened-sliding-bathroom-door-is-closed.jpg": {
+    "mtime": 1793375739.277598,
+    "seen": 1794138061.92019,
+    "ast_hash": "b248ca9d35e4167e1950b71a43ac76bb",
+    "semantic_hash": "b248ca9d35e4167e1950b71a43ac76bb"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p06-view-from-inside-bedroom-to-study-room-semitransparent-sliding-studyroom-door-is-closed-sliding-bathroom-door-is_opened.jpg": {
+    "mtime": 1793375739.9700382,
+    "seen": 1794138061.9201913,
+    "ast_hash": "576bb79079295ae64931c0a3a21b9496",
+    "semantic_hash": "576bb79079295ae64931c0a3a21b9496"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p07-main-bathroom-view-from-window-to-bathroom-wall-with-mirror-circular-shape-reflecting-bathroom-window.jpg": {
+    "mtime": 1793375740.8991432,
+    "seen": 1794138061.9201927,
+    "ast_hash": "fd6a041e3e41220d9aaeddda0dd7cb09",
+    "semantic_hash": "fd6a041e3e41220d9aaeddda0dd7cb09"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p08-vew-from main-bathroom-to bathroom-window.jpg": {
+    "mtime": 1793375741.8758373,
+    "seen": 1794138061.920194,
+    "ast_hash": "2b8faac6518920d83fded22a7121df0a",
+    "semantic_hash": "2b8faac6518920d83fded22a7121df0a"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p09-view-from-studyroom-table-to-the-main-bedroom-closet-onleft-bedroom-door-closed-studyroom-wall-vertical-mirror-onleft-reflecting-study-table.jpg": {
+    "mtime": 1793375742.3780637,
+    "seen": 1794138061.9201949,
+    "ast_hash": "58145ad1996c66c3b15fb414061a685a",
+    "semantic_hash": "58145ad1996c66c3b15fb414061a685a"
+  },
+  "ref_photos/rendering-261028/apt-rendering-20261028-p10-studyroom-view-from-inner-corner-to-table-and-room-entrance-there-is-mirror-on-the ceiling-reflecting-side-wall-near-table.jpg": {
+    "mtime": 1793375743.0588024,
+    "seen": 1794138061.9201958,
+    "ast_hash": "543129ce787a9b59639c9db898b44d60",
+    "semantic_hash": "543129ce787a9b59639c9db898b44d60"
+  },
+  "ref_photos/rendering-3-view from kinchen to the angle of living room and entrance.jpg": {
+    "mtime": 1792155559.2944753,
+    "seen": 1794138061.9201968,
+    "ast_hash": "3adc68fe6de2b0e94c31fe72470191df",
+    "semantic_hash": "3adc68fe6de2b0e94c31fe72470191df"
+  },
+  "ref_photos/rendering-4-view of the living room straight to TV wall.jpg": {
+    "mtime": 1792155559.3776667,
+    "seen": 1794138061.920198,
+    "ast_hash": "2e41bff340b456ba969d45f33371022e",
+    "semantic_hash": "2e41bff340b456ba969d45f33371022e"
+  },
+  "ref_photos/rendering-5-corner view of the living room to the dining table and entrance visible refregirator and kitchen apliances closets.jpg": {
+    "mtime": 1792155559.505476,
+    "seen": 1794138061.920199,
+    "ast_hash": "2807f118d616910414e25ad863d4132b",
+    "semantic_hash": "2807f118d616910414e25ad863d4132b"
+  },
+  "ref_photos/rendering-6-straight view to the living room and kitchen.jpg": {
+    "mtime": 1792155559.5926223,
+    "seen": 1794138061.9201999,
+    "ast_hash": "5c5c935ebbd67d561d89fbc45dbe765d",
+    "semantic_hash": "5c5c935ebbd67d561d89fbc45dbe765d"
+  },
+  "ref_photos/rendering-7-view to the opened kitchen.jpg": {
+    "mtime": 1792155559.7582748,
+    "seen": 1794138061.920201,
+    "ast_hash": "53c953ec553075364833b2046adf5e01",
+    "semantic_hash": "53c953ec553075364833b2046adf5e01"
+  },
+  "ref_photos/rendering-8-straight view daughter room to the bed.jpg": {
+    "mtime": 1792155559.9098673,
+    "seen": 1794138061.920202,
+    "ast_hash": "db66befa267569235be49af8c81957bc",
+    "semantic_hash": "db66befa267569235be49af8c81957bc"
+  },
+  "ref_photos/rendering-9-straight view daughter room from the window to the room entrance.jpg": {
+    "mtime": 1792155560.0687785,
+    "seen": 1794138061.920203,
+    "ast_hash": "0a7c88eb976d9bcee4e4c9a7e8d1a26d",
+    "semantic_hash": "0a7c88eb976d9bcee4e4c9a7e8d1a26d"
+  },
+  "ref_photos/study_room_window.jpg": {
+    "mtime": 1790783785.2586586,
+    "seen": 1794138061.920204,
+    "ast_hash": "81b7b69994ec89a04df5c8b426757120",
+    "semantic_hash": "81b7b69994ec89a04df5c8b426757120"
+  },
+  "ref_photos/utility_balcony_view_from_balcony_door.jpg": {
+    "mtime": 1790783787.6809444,
+    "seen": 1794138061.920205,
+    "ast_hash": "c70cdb01037708754c2afb5d004d5085",
+    "semantic_hash": "c70cdb01037708754c2afb5d004d5085"
+  },
+  "AGENTS.md": {
+    "mtime": 1794141723.616604,
+    "seen": 1794141927.9489229,
+    "ast_hash": "32b8a1b9f9814f1011ca564478d2236a",
+    "semantic_hash": ""
+  },
+  "package-lock.json": {
+    "mtime": 1789477595.877435,
+    "seen": 1794141927.949003,
+    "ast_hash": "af33d4a78cdd0ee8e30ea5ce723f7c8a",
+    "semantic_hash": ""
+  }
+}

@@ -893,7 +893,9 @@ for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>b.closest
 for(const d of document.querySelectorAll('dialog'))d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});
 const movement={KeyW:'forward',ArrowUp:'forward',KeyS:'back',ArrowDown:'back',KeyA:'left',ArrowLeft:'left',KeyD:'right',ArrowRight:'right'};
 addEventListener('keydown',e=>{if(e.code==='Escape'&&document.body.classList.contains('clean-view')&&!document.querySelector('dialog[open]'))editing?editMode(false):cleanView(false);});
-addEventListener('keydown',e=>{if(mode!=='walk'||document.querySelector('dialog[open]')||e.target.matches('button,a,input'))return;if(movement[e.code]){e.preventDefault();keys.add(movement[e.code]);requestRender();}});
+// Movement keys must survive a focused HUD button or link, otherwise walking dies after any
+// click on a scene tool (the buttons keep focus, so keydown targets them and not the canvas).
+addEventListener('keydown',e=>{if(mode!=='walk'||document.querySelector('dialog[open]')||e.target.matches('input,textarea,select,[contenteditable]'))return;if(movement[e.code]){e.preventDefault();keys.add(movement[e.code]);requestRender();}});
 addEventListener('keyup',e=>{if(movement[e.code])keys.delete(movement[e.code]);});
 const furnitureRay=new THREE.Raycaster(),pointer=new THREE.Vector2();
 let furnitureDrag=null,lastFurnitureTap=null;

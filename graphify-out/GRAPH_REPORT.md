@@ -1,7 +1,7 @@
-# Graph Report - apt  (2026-11-08)
+# Graph Report - apt  (2026-11-09)
 
 ## Corpus Check
-- 9 files · ~9,626 words
+- 9 files · ~9,660 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .css 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `744562e8`
+- Built from commit: `fcc0367a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -153,23 +153,23 @@ Nodes (6): Photo: Main Bathroom Window, Built-in white drop-in bathtub under win
 ## Ambiguous Edges - Review These
 - `Toilet door / glass partition opening` → `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
   ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg · relation: conceptually_related_to
-- `Rendering 2 - Cross-section: living room to entrance/fridge wall` → `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
+- `Guest Bathroom (客浴廁)` → `Rendering 2 - Cross-section: living room to entrance/fridge wall`  [AMBIGUOUS]
   ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg · relation: references
-- `Exterior Balcony / Louver Fins along East and South Facades` → `Balcony`  [AMBIGUOUS]
-  ref_photos/apt-plan-2026-10-07.jpg · relation: conceptually_related_to
-- `Balcony` → `Apartment Floor Plan 2026-10-28`  [AMBIGUOUS]
-  ref_photos/rendering-261028/apt-plan-261028.png · relation: references
 - `Study ceiling mirror strip reflecting marble side wall` → `Vertical study wall mirror reflecting study table`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-rendering-20261028-p10-studyroom-view-from-inner-corner-to-table-and-room-entrance-there-is-mirror-on-the ceiling-reflecting-side-wall-near-table.jpg · relation: semantically_similar_to
 - `Study Room (書房)` → `Rendering p03: Main Bedroom, Inner Corner to Entrance`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-rendering-20261028-p03-main-bedroom-vew-from-the-inner-corner-to-entrance-bed-is-blurred.jpg · relation: references
+- `Apartment Floor Plan 2026-10-28` → `Balcony`  [AMBIGUOUS]
+  ref_photos/rendering-261028/apt-plan-261028.png · relation: references
 - `Living Room (客廳) with sofa and TV wall cabinet` → `Pale Leaf-Branch Wall Mural (champagne/beige wallpaper)`  [AMBIGUOUS]
   assets/tex-mural.jpg · relation: conceptually_related_to
 - `Arched white oak closet/entry portal` → `White sliding wardrobe with curved edge`  [AMBIGUOUS]
   ref_photos/rendering-9-straight view daughter room from the window to the room entrance.jpg · relation: conceptually_related_to
+- `Exterior Balcony / Louver Fins along East and South Facades` → `Balcony`  [AMBIGUOUS]
+  ref_photos/apt-plan-2026-10-07.jpg · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **48 isolated node(s):** `Storage Cabinet (儲藏櫃) and Fridge`, `Utility Balcony AC Outdoor Unit and Gas Water Heater`, `White High-Gloss Kitchen Cabinets and Beige Wall Tiles`, `Wall Intercom Panel`, `Woman seated on sofa (staging)` (+43 more)
+- **48 isolated node(s):** `Storage Cabinet (儲藏櫃) and Fridge`, `Wall Intercom Panel`, `Woman seated on sofa (staging)`, `Wall-mounted split AC unit (main bedroom)`, `Ceiling dome light and smoke detector` (+43 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 125 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -180,7 +180,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.049) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `Kitchen (廚房)` (e.g. with `Rendering 1 - Entrance view from front door` and `Dark wood bench in kitchen corridor`) actually correct?**
   _`Kitchen (廚房)` has 4 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Storage Cabinet (儲藏櫃) and Fridge`, `Utility Balcony AC Outdoor Unit and Gas Water Heater`, `White High-Gloss Kitchen Cabinets and Beige Wall Tiles` to the rest of the system?**
+- **What connects `Storage Cabinet (儲藏櫃) and Fridge`, `Wall Intercom Panel`, `Woman seated on sofa (staging)` to the rest of the system?**
   _48 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Living, Kitchen & Entrance Design` be split into smaller, more focused modules?**
   _Cohesion score 0.09618874773139746 - nodes in this community are weakly interconnected._
@@ -192,5 +192,5 @@ _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._
 
 - **What is the exact relationship between `Toilet door / glass partition opening` and `Guest Bathroom (客浴廁)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **What is the exact relationship between `Rendering 2 - Cross-section: living room to entrance/fridge wall` and `Guest Bathroom (客浴廁)`?**
+- **What is the exact relationship between `Guest Bathroom (客浴廁)` and `Rendering 2 - Cross-section: living room to entrance/fridge wall`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
