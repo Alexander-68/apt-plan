@@ -395,9 +395,15 @@ function bulkhead(x1,z1,x2,z2,y=BUILT_IN){box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,CE
 // Rounded ceiling soffits stand in for the renderings' curved bulkheads; the top edges hide above the ceiling.
 function soffit(x1,z1,x2,z2,y=2.42){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,CEILING-y+.12,y,M.soffit,.1,overhead);o.castShadow=false;return o;}
 function slot(x1,z1,x2,z2,y){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,.012,y-.012,M.reveal,0,overhead);o.castShadow=false;}
-edgeLines([[640,560,725,625],[600,800,660,850],[905,330,985,395],[400,860,455,905]].flatMap(([x1,z1,x2,z2])=>
+// Flush ceiling access hatches (renderings 1, 4–6, 8, 9, p01, p03, p04): a thin plate with an outlined seam.
+const hatches=[[640,560,725,625],[600,800,660,850],[905,330,985,395],[400,860,455,905],[1230,480,1290,540]];
+for(const [x1,z1,x2,z2] of hatches){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,.004,CEILING-.008,M.paint,0,overhead);o.castShadow=false;}
+edgeLines(hatches.flatMap(([x1,z1,x2,z2])=>
   [[x1,z1,x2,z1],[x2,z1,x2,z2],[x2,z2,x1,z2],[x1,z2,x1,z1]].flatMap(([a,b,c,d])=>
-    [new THREE.Vector3(X(a),CEILING-.003,Z(b)),new THREE.Vector3(X(c),CEILING-.003,Z(d))])),overhead);
+    [new THREE.Vector3(X(a),CEILING-.009,Z(b)),new THREE.Vector3(X(c),CEILING-.009,Z(d))])),overhead);
+// Linear slot AC diffusers: living ceiling parallel to the TV wall (r2–r5), main bedroom by the wardrobe (p03, p04).
+// The daughter-room grille is the dark strip on the bulkhead face below.
+slot(626,300,629,740,CEILING);slot(1160,395,1163,515,CEILING);
 
 // Media wall (renderings 3–5): walnut-topped bench, TV niche below upper cabinets, tall doors, lit glass display, pillar.
 box(550,497,42,436,.33,0,M.reveal);solid(550,497,42,436);

@@ -1,6 +1,6 @@
 # F Residence
 
-A furnished 3D apartment walkthrough built with Three.js **0.185.0**, loaded from the requested jsDelivr module URL. No build step or production dependencies.
+A furnished 3D apartment walkthrough built with Three.js **0.187.0**, loaded from the requested jsDelivr module URL. No build step or production dependencies.
 
 ## Run
 

@@ -123,7 +123,7 @@ try {
   await page.goto('http://127.0.0.1:4173');
   await page.waitForFunction(()=>window.apartment,{timeout:60000});
   await page.waitForTimeout(1200);
-  assert.equal(await page.evaluate(()=>apartment.revision),'185');
+  assert.equal(await page.evaluate(()=>apartment.revision),'187');
   assert.ok(await page.evaluate(()=>apartment.meshes)>100);
   assert.ok(await page.evaluate(()=>checkWallEdges()),'Joined corner and opening lines replace individual block outlines');
   const openings=await page.evaluate(()=>openingCheck());
@@ -404,5 +404,5 @@ try {
   assert.ok(Math.hypot(mobileEnd.x-mobileStart.x,mobileEnd.z-mobileStart.z)>.2,'Touch pad moves the camera');
   await mobile.screenshot({path:'artifacts/mobile-walk.png'});
   assert.deepEqual(errors,[]);
-  console.log('PASS: idle rendering and shadow caching, Three.js r185, 9 connected rooms, furniture dragging, keyboard walking, solid collisions, lighting, walls, dialogs, mobile layout and real touch movement.');
+  console.log('PASS: idle rendering and shadow caching, Three.js r187, 9 connected rooms, furniture dragging, keyboard walking, solid collisions, lighting, walls, dialogs, mobile layout and real touch movement.');
 } finally {await browser.close();}
