@@ -1,15 +1,15 @@
 {
   "app.js": {
-    "mtime": 1793406733.3885047,
-    "seen": 1794138061.920138,
-    "ast_hash": "c680ebb8649ee47e2ef5fb0cf0957417",
-    "semantic_hash": "c680ebb8649ee47e2ef5fb0cf0957417"
+    "mtime": 1794141884.177105,
+    "seen": 1794141927.9488997,
+    "ast_hash": "32bcd103f8a0648eaef3b8f0da4f15a2",
+    "semantic_hash": ""
   },
   "check.mjs": {
-    "mtime": 1793379340.6380742,
-    "seen": 1794138061.9201472,
-    "ast_hash": "964bd94d8a67aa1cda15d9cb913bdb2f",
-    "semantic_hash": "964bd94d8a67aa1cda15d9cb913bdb2f"
+    "mtime": 1794141782.8784103,
+    "seen": 1794141927.9489076,
+    "ast_hash": "eda05845e4732155a4992005bd041478",
+    "semantic_hash": ""
   },
   "package.json": {
     "mtime": 1789478666.3490622,
@@ -42,16 +42,16 @@
     "semantic_hash": "7134e6a92b559b070d855369182dfb7a"
   },
   "README.md": {
-    "mtime": 1793406757.7977989,
-    "seen": 1794138061.920158,
-    "ast_hash": "cc7c7f7d68e494760c1c46bdd4555a79",
-    "semantic_hash": "cc7c7f7d68e494760c1c46bdd4555a79"
+    "mtime": 1794141723.6155984,
+    "seen": 1794141927.9489243,
+    "ast_hash": "73e9642932abb12c0f9aa3586d5d63d6",
+    "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1792171900.0323787,
-    "seen": 1794138061.9201589,
-    "ast_hash": "5a6dee92f50a8f39127c4b522f750fdf",
-    "semantic_hash": "5a6dee92f50a8f39127c4b522f750fdf"
+    "mtime": 1794141723.613597,
+    "seen": 1794141927.9489257,
+    "ast_hash": "1e9634bf31f2df7d04bc8c01672ecc73",
+    "semantic_hash": ""
   },
   "260801-apartm-plan-F.pdf": {
     "mtime": 1789202060.7855375,
@@ -312,9 +312,15 @@
     "semantic_hash": "c70cdb01037708754c2afb5d004d5085"
   },
   "AGENTS.md": {
-    "mtime": 1794139255.7602508,
-    "seen": 1794139611.8017952,
-    "ast_hash": "5c52cd74c6d4bd23824a2ef78d7ccfae",
-    "semantic_hash": "5c52cd74c6d4bd23824a2ef78d7ccfae"
+    "mtime": 1794141723.616604,
+    "seen": 1794141927.9489229,
+    "ast_hash": "32b8a1b9f9814f1011ca564478d2236a",
+    "semantic_hash": ""
+  },
+  "package-lock.json": {
+    "mtime": 1789477595.877435,
+    "seen": 1794141927.949003,
+    "ast_hash": "af33d4a78cdd0ee8e30ea5ce723f7c8a",
+    "semantic_hash": ""
   }
 }

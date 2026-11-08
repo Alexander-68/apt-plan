@@ -394,16 +394,19 @@ function joinery(x1,z1,x2,z2,y,h,face,cols=1,mat=M.whiteOak) {
 function bulkhead(x1,z1,x2,z2,y=BUILT_IN){box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,CEILING-y,y,M.paint,0,overhead);}
 // Rounded ceiling soffits stand in for the renderings' curved bulkheads; the top edges hide above the ceiling.
 function soffit(x1,z1,x2,z2,y=2.42){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,CEILING-y+.12,y,M.soffit,.1,overhead);o.castShadow=false;return o;}
-function slot(x1,z1,x2,z2,y){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,.012,y-.012,M.reveal,0,overhead);o.castShadow=false;}
+function slot(x1,z1,x2,z2,y,parent=overhead){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,.008,y-.012,M.reveal,0,parent);o.castShadow=false;return o;}
 // Flush ceiling access hatches (renderings 1, 4–6, 8, 9, p01, p03, p04): a thin plate with an outlined seam.
-const hatches=[[640,560,725,625],[600,800,660,850],[905,330,985,395],[400,860,455,905],[1230,480,1290,540]];
-for(const [x1,z1,x2,z2] of hatches){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,.004,CEILING-.008,M.paint,0,overhead);o.castShadow=false;}
-edgeLines(hatches.flatMap(([x1,z1,x2,z2])=>
-  [[x1,z1,x2,z1],[x2,z1,x2,z2],[x2,z2,x1,z2],[x1,z2,x1,z1]].flatMap(([a,b,c,d])=>
-    [new THREE.Vector3(X(a),CEILING-.009,Z(b)),new THREE.Vector3(X(c),CEILING-.009,Z(d))])),overhead);
-// Linear slot AC diffusers: living ceiling parallel to the TV wall (r2–r5), main bedroom by the wardrobe (p03, p04).
-// The daughter-room grille is the dark strip on the bulkhead face below.
-slot(626,300,629,740,CEILING);slot(1160,395,1163,515,CEILING);
+const hatches=[[640,560,725,625],[600,800,660,850],[905,330,985,395],[1230,480,1290,540]];
+const entryHatches=[[400,860,455,905]];
+for(const [list,group] of [[hatches,overhead],[entryHatches,walkOnly]]) {
+  for(const [x1,z1,x2,z2] of list){const o=box((x1+x2)/2,(z1+z2)/2,x2-x1,z2-z1,.004,CEILING-.008,M.paint,0,group);o.castShadow=false;}
+  edgeLines(list.flatMap(([x1,z1,x2,z2])=>
+    [[x1,z1,x2,z1],[x2,z1,x2,z2],[x2,z2,x1,z2],[x1,z2,x1,z1]].flatMap(([a,b,c,d])=>
+      [new THREE.Vector3(X(a),CEILING-.009,Z(b)),new THREE.Vector3(X(c),CEILING-.009,Z(d))])),group);
+}
+// Linear slot AC diffuser: living ceiling parallel to the TV wall (r2–r5).
+// The daughter-room grille is the dark strip on the bulkhead face below; the bedroom diffuser is beside the wardrobe.
+slot(626,300,629,740,CEILING);
 
 // Media wall (renderings 3–5): walnut-topped bench, TV niche below upper cabinets, tall doors, lit glass display, pillar.
 box(550,497,42,436,.33,0,M.reveal);solid(550,497,42,436);
@@ -492,11 +495,11 @@ movable(462,792,()=>{
   const shape=new THREE.Shape([[279,759],[529,759],[529,890],[279,890]].map(([x,z])=>new THREE.Vector2(X(x),-Z(z))));
   const ellipse=(r,clockwise)=>{const p=new THREE.Path();p.absellipse(X(392),-Z(822),1.2+r,.55+r,0,Math.PI*2,clockwise);return p;};
   shape.holes.push(ellipse(0,true));
-  const drop=new THREE.Mesh(new THREE.ShapeGeometry(shape,48).rotateX(-Math.PI/2),material('#efeae1',.9,{side:THREE.DoubleSide}));drop.position.y=2.42;overhead.add(drop);
+  const drop=new THREE.Mesh(new THREE.ShapeGeometry(shape,48).rotateX(-Math.PI/2),material('#efeae1',.9,{side:THREE.DoubleSide}));drop.position.y=2.42;walkOnly.add(drop);
   const rim=new THREE.Shape();rim.absellipse(X(392),-Z(822),1.2,.55,0,Math.PI*2,false);rim.holes.push(ellipse(-.02,true));
   const disc=new THREE.Shape();disc.absellipse(X(392),-Z(822),1.2,.55,0,Math.PI*2,false);
-  const glow=new THREE.Mesh(new THREE.ShapeGeometry(disc,48).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#f7f0e4',side:THREE.DoubleSide}));glow.position.y=CEILING-.004;overhead.add(glow);
-  const cove=new THREE.Mesh(new THREE.ExtrudeGeometry(rim,{depth:.2,bevelEnabled:false,curveSegments:48}).rotateX(-Math.PI/2),M.led);cove.position.y=2.42;overhead.add(cove);
+  const glow=new THREE.Mesh(new THREE.ShapeGeometry(disc,48).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#f7f0e4',side:THREE.DoubleSide}));glow.position.y=CEILING-.004;walkOnly.add(glow);
+  const cove=new THREE.Mesh(new THREE.ExtrudeGeometry(rim,{depth:.2,bevelEnabled:false,curveSegments:48}).rotateX(-Math.PI/2),M.led);cove.position.y=2.42;walkOnly.add(cove);
 }
 
 // Refrigerator wall (renderings 2, 4–6): whitewashed oak, walnut-lined fridge bay, appliance niche toward the kitchen.
@@ -599,7 +602,7 @@ function stripWall(x1,z1,x2,z2,face,top=2.48,seed=7,parent=architecture,panel=tr
 const BED_TOP=2.48; // bedroom perimeter band underside; window heads sit just below it
 // Wardrobe on the daughter-room wall, rounded toward the vestibule; walnut reveals pair the leaves (p03, p04, p09).
 {
-  const x1=1086,x2=1135,z1=278,z2=570,r=30,h=BED_TOP;
+  const x1=1086,x2=1135,z1=278,z2=570,r=30,h=BED_TOP-.01;
   const s=new THREE.Shape();
   s.moveTo(X(x1),-Z(z1));s.lineTo(X(x2),-Z(z1));s.lineTo(X(x2),-Z(z2-r));
   s.absarc(X(x2-r),-Z(z2-r),r*SCALE,0,-Math.PI/2,true);s.lineTo(X(x1),-Z(z2));s.lineTo(X(x1),-Z(z1));
@@ -630,12 +633,12 @@ const BED_TOP=2.48; // bedroom perimeter band underside; window heads sit just b
   const ring=(d1,d2,depth,mat,y)=>{const sh=rr(...inset(d1),new THREE.Shape());sh.holes.push(rr(...inset(d2),new THREE.Path()));
     const o=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth,bevelEnabled:false,curveSegments:24}).rotateX(-Math.PI/2),mat);o.position.y=y;o.castShadow=false;overhead.add(o);return o;};
   ring(0,1.5,.12,M.cove,BED_TOP);ring(1.5,3.5,.012,M.led,BED_TOP+.12);
-  slot(1141,300,1145,560,BED_TOP);
+  slot(1141,300,1145,560,BED_TOP,walkOnly);
 }
 // East wall: white wainscot and ledge, plantation shutters closed in the centre bays and folded beside the end sashes (p01, p02).
 box(1381.5,451,3,306,.89,0,M.lacquer);box(1377.5,451,6,322,.035,.89,M.lacquer);
 for(const z of [337.6,375.25,412.9,488.1,525.75,563.4])box(1379.8,z,.6,.5,.82,.04,M.reveal);
-for(const z of [296,605])box(1379,z,6,6,2.455-.925,.925,M.lacquer,0,glazing);box(1379,450.5,6,315,.05,2.43,M.lacquer,0,glazing);
+for(const z of [296,605])box(1379,z,6,6,2.455-.925,.925,M.lacquer,0,glazing);box(1379,450.5,6,315,.048,2.43,M.lacquer,0,glazing);
 function shutter(z1,z2,y1=.93,y2=2.43,x=1379,p=glazing) {
   const w=z2-z1,zc=(z1+z2)/2,mid=(y1+y2)/2;
   for(const z of [z1+1.8,z2-1.8])box(x,z,1.8,3.6,y2-y1,y1,M.lacquer,0,p);
