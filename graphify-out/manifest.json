@@ -1,8 +1,8 @@
 {
   "app.js": {
-    "mtime": 1794155024.7924135,
-    "seen": 1794155123.9392993,
-    "ast_hash": "214c5cc92b3d5cbb1d2a203c0772d249",
+    "mtime": 1794155733.960297,
+    "seen": 1794155830.6376204,
+    "ast_hash": "d06ffcd35d1101b9404dcc8ae26a4a2c",
     "semantic_hash": ""
   },
   "check.mjs": {
@@ -18,10 +18,10 @@
     "semantic_hash": "655ded82912f2d87ed6a24ef0a465171"
   },
   "plan.js": {
-    "mtime": 1793378814.8126676,
-    "seen": 1794138061.9201512,
-    "ast_hash": "2d7debb3960b8bb727a0f29e885ffcac",
-    "semantic_hash": "2d7debb3960b8bb727a0f29e885ffcac"
+    "mtime": 1794155732.6808767,
+    "seen": 1794155830.6376438,
+    "ast_hash": "8665fbb722d1e0cd30b778a5aaa275ed",
+    "semantic_hash": ""
   },
   "stool.js": {
     "mtime": 1789574846.3617058,

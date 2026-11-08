@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { SCALE, X, Z, CEILING, outline, rooms, walls, windows, doors, inside, fitsFurniture } from './plan.js';
+import { SCALE, X, Z, unX, unZ, CEILING, outline, rooms, walls, windows, doors, inside, fitsFurniture } from './plan.js';
 import { wallCorners, cornerSpan } from './wall-edges.js';
 import { createStool } from './stool.js';
 import { createStool2 } from './stool2.js';
@@ -180,7 +180,13 @@ for(const [x1,z1,x2,z2,t=12] of walls) {
   // Wall junctions overlap, but an opening's clear span must not be covered by end caps.
   const meetsOpening=(x,z)=>[...doors,...windows].some(([a,b,c,d])=>horizontal===(b===d)&&
     ((x===a&&z===b)||(x===c&&z===d)));
-  const start=meetsOpening(x1,z1)?0:t/2,end=meetsOpening(x2,z2)?0:t/2;
+  // A wall end that stops at an opening stays flush with the opening's face. Otherwise it reaches
+  // the outer face of the thickest wall meeting at that junction: a thin wall stopping at half its
+  // own thickness leaves a notch where a thicker wall crosses it.
+  const reach=(x,z)=>Math.max(t/2,...walls.filter(([a,b,c,d])=>b===d
+    ? z===b&&x>=Math.min(a,c)&&x<=Math.max(a,c)
+    : a===c&&x===a&&z>=Math.min(b,d)&&z<=Math.max(b,d)).map(([,, , ,u=12])=>u/2));
+  const start=meetsOpening(x1,z1)?0:reach(x1,z1),end=meetsOpening(x2,z2)?0:reach(x2,z2);
   const w=horizontal?x2-x1+start+end:t,d=horizontal?t:z2-z1+start+end;
   const x=(x1+x2)/2+(horizontal?(end-start)/2:0),z=(z1+z2)/2+(horizontal?0:(end-start)/2);
   box(x,z,w,d,CEILING,0,M.wall,0,architecture);solid(x,z,w,d);
@@ -248,8 +254,9 @@ for(const [x1,z1,x2,z2,{head=2.25,style}={}] of doors) {
     solid(x2-9,z2+(x2-x1)/2,6,x2-x1);
   }
 }
-for(const [x1,z1,x2,z2,{id,sill,head,panels,rail,sashes=[],sashBottom,open,blinds=[]}] of windows) {
-  const horizontal=z1===z2,w=horizontal?x2-x1:16,d=horizontal?16:z2-z1,x=(x1+x2)/2,z=(z1+z2)/2;
+for(const [x1,z1,x2,z2,{id,depth=16,sill,head,panels,rail,sashes=[],sashBottom,open,blinds=[]}] of windows) {
+  // Sill thickness follows the interrupted wall run so both share one corner line (plan.js `depth`).
+  const horizontal=z1===z2,w=horizontal?x2-x1:depth,d=horizontal?depth:z2-z1,x=(x1+x2)/2,z=(z1+z2)/2;
   box(x,z,w,d,sill,0,M.wall,0,architecture).name=id+'-sill';solid(x,z,w,d);
   box(x,z,w,d,CEILING-head,head,M.wall,0,overhead);
   if(open)continue; // Utility balcony has an open aperture above its masonry parapet.
@@ -282,10 +289,10 @@ for(const [x1,z1,x2,z2,{id,sill,head,panels,rail,sashes=[],sashBottom,open,blind
 for(const [x,z,w,d] of [[490,235,70,70],[1420,235,70,70],[1410,905,90,60],[515,905,105,70],[940,963,75,55]]) {
   box(x,z,w,d,CEILING,0,M.wall,0,architecture);solid(x,z,w,d);
 }
-const placementWalls=colliders.map(([x1,z1,x2,z2])=>[x1/SCALE+850,z1/SCALE+650,x2/SCALE+850,z2/SCALE+650]);
+const placementWalls=colliders.map(([x1,z1,x2,z2])=>[unX(x1),unZ(z1),unX(x2),unZ(z2)]);
 // Outline the joined footprint, not the end faces of individual wall blocks.
 const wallFootprints=architecture.children.map(o=>{
-  const {width,depth}=o.geometry.parameters,x=o.position.x/SCALE+850,z=o.position.z/SCALE+650;
+  const {width,depth}=o.geometry.parameters,x=unX(o.position.x),z=unZ(o.position.z);
   return [x-width/SCALE/2,z-depth/SCALE/2,x+width/SCALE/2,z+depth/SCALE/2].map(v=>Math.round(v*1000)/1000);
 });
 function edgeLines(points,parent) {
@@ -815,7 +822,7 @@ for(const object of furniture)object.userData.homeAngle=object.rotation.y;
 let mode='overview',fullWalls=false,evening=false,editing=false,yaw=0,pitch=0,currentRoom='',drag=null,lastTime=0;
 const keys=new Set();
 function canStand(x,z) {
-  const px=x/SCALE+850,pz=z/SCALE+650,r=.18;
+  const px=unX(x),pz=unZ(z),r=.18;
   if(!inside(px,pz))return false;
   // ponytail: linear scan is ample for this single apartment; use a spatial index for large buildings.
   return !colliders.some(([x1,z1,x2,z2])=>x>x1-r&&x<x2+r&&z>z1-r&&z<z2+r);
@@ -833,6 +840,17 @@ function resetView() {
   if(innerWidth<801)camera.position.multiplyScalar(Math.max(1.3,.9/camera.aspect));
   camera.fov=39;camera.updateProjectionMatrix();orbit.update();
 }
+// Furniture may legally be dropped on a room's spawn point. Step outward instead of teleporting
+// into it: from a blocked start every movement substep fails canStand, which froze walking with
+// no feedback until the layout was reset.
+function freeSpawn(x,z) {
+  if(canStand(x,z))return [x,z];
+  for(let radius=.2;radius<=2.4;radius+=.2)for(let step=0;step<16;step++) {
+    const angle=step*Math.PI/8,nx=x+Math.cos(angle)*radius,nz=z+Math.sin(angle)*radius;
+    if(canStand(nx,nz))return [nx,nz];
+  }
+  return [x,z];
+}
 function setMode(next,room=rooms[0]) {
   if(next==='walk'&&editing)editMode(false);
   endFurnitureDrag();keys.clear();drag=null;
@@ -842,7 +860,9 @@ function setMode(next,room=rooms[0]) {
   wallState();
   if(mode==='overview'){resetView();$('#hint').innerHTML='Choose Edit furniture to move pieces <i>·</i> Drag elsewhere to orbit';currentRoom='';updateRoom();}
   else {
-    camera.fov=67;camera.updateProjectionMatrix();camera.position.set(X(room.point[0]),1.62,Z(room.point[1]));
+    camera.fov=67;camera.updateProjectionMatrix();
+    const [spawnX,spawnZ]=freeSpawn(X(room.point[0]),Z(room.point[1]));
+    camera.position.set(spawnX,1.62,spawnZ);
     yaw=Math.atan2(-(room.look[0]-room.point[0]),-(room.look[1]-room.point[1]));pitch=['bath','guest','utility','kitchen'].includes(room.id)?-.48:-.2;
     look();updateRoom();$('#hint').textContent=matchMedia('(pointer:coarse)').matches?'Drag to look · Arrow pad to move':'WASD / arrows to move · Drag to look · Esc releases mouse';
   }
@@ -853,7 +873,7 @@ for(const [i,r] of rooms.entries()) {
   const b=document.createElement('button');b.dataset.room=r.id;b.innerHTML=`<span class="number">${String(i+1).padStart(2,'0')}</span><span>${r.name}</span><span class="arrow">↗</span>`;b.addEventListener('click',()=>setMode('walk',r));$('#rooms').append(b);
 }
 function updateRoom(){
-  const px=camera.position.x/SCALE+850,pz=camera.position.z/SCALE+650;
+  const px=unX(camera.position.x),pz=unZ(camera.position.z);
   const room=mode==='walk'?rooms.find(r=>inside(px,pz,r.poly)):null;
   const id=room?.id||'';
   if(id!==currentRoom||mode==='overview') {
@@ -898,7 +918,7 @@ addEventListener('keydown',e=>{if(e.code==='Escape'&&document.body.classList.con
 addEventListener('keydown',e=>{if(mode!=='walk'||document.querySelector('dialog[open]')||e.target.matches('input,textarea,select,[contenteditable]'))return;if(movement[e.code]){e.preventDefault();keys.add(movement[e.code]);requestRender();}});
 addEventListener('keyup',e=>{if(movement[e.code])keys.delete(movement[e.code]);});
 const furnitureRay=new THREE.Raycaster(),pointer=new THREE.Vector2();
-let furnitureDrag=null,lastFurnitureTap=null;
+let furnitureDrag=null,lastFurnitureTap=null,dragShadowTick=0;
 addEventListener('keydown',e=>{
   if(e.code==='Space'&&furnitureDrag) {
     e.preventDefault();
@@ -915,7 +935,7 @@ function placeFurniture(object,position,angle=object.rotation.y) {
   object.position.copy(position);object.rotation.y=angle;
   // ponytail: conservative bounding rectangle; use mesh footprints if tighter placement is needed.
   const {min,max}=new THREE.Box3().setFromObject(object,true);
-  if(!fitsFurniture([min.x/SCALE+850,min.z/SCALE+650,max.x/SCALE+850,max.z/SCALE+650],placementWalls)) {
+  if(!fitsFurniture([unX(min.x),unZ(min.z),unX(max.x),unZ(max.z)],placementWalls)) {
     object.position.copy(start);object.rotation.y=startAngle;
   }
   const {home,homeAngle,homeColliders}=object.userData;
@@ -982,7 +1002,10 @@ renderer.domElement.addEventListener('pointermove',e=>{
   const {object,plane,offset}=furnitureDrag,point=new THREE.Vector3();
   if(!furnitureRay.ray.intersectPlane(plane,point))return;
   point.add(offset);
-  object.position.x=point.x;object.position.z=point.z;requestRender(true);
+  object.position.x=point.x;object.position.z=point.z;
+  // A full 2048² VSM shadow pass on every pointermove is the costliest thing a drag can do;
+  // refresh every fourth move instead. The drop always refreshes, so the final shadows are exact.
+  requestRender(++dragShadowTick%4===0);
 });
 renderer.domElement.addEventListener('pointerup',e=>{
   const object=furnitureDrag?.object;
