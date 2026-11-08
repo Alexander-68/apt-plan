@@ -1,27 +1,27 @@
 {
   "app.js": {
-    "mtime": 1794155024.7924135,
-    "seen": 1794155123.9392993,
-    "ast_hash": "214c5cc92b3d5cbb1d2a203c0772d249",
+    "mtime": 1794157418.0754871,
+    "seen": 1794157461.7233238,
+    "ast_hash": "d06ffcd35d1101b9404dcc8ae26a4a2c",
     "semantic_hash": ""
   },
   "check.mjs": {
-    "mtime": 1794148783.1217566,
-    "seen": 1794148866.764109,
-    "ast_hash": "f2694adea63cb16cf0878a6e26d174ff",
+    "mtime": 1794157032.9843378,
+    "seen": 1794157461.7233343,
+    "ast_hash": "0f366cd1114a61976aef68ae6283facc",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1789478666.3490622,
-    "seen": 1794138061.9201503,
-    "ast_hash": "655ded82912f2d87ed6a24ef0a465171",
-    "semantic_hash": "655ded82912f2d87ed6a24ef0a465171"
+    "mtime": 1794156902.6323903,
+    "seen": 1794157461.7233367,
+    "ast_hash": "9c99761279650cbb8391e3398a55f3cc",
+    "semantic_hash": ""
   },
   "plan.js": {
-    "mtime": 1793378814.8126676,
-    "seen": 1794138061.9201512,
-    "ast_hash": "2d7debb3960b8bb727a0f29e885ffcac",
-    "semantic_hash": "2d7debb3960b8bb727a0f29e885ffcac"
+    "mtime": 1794157129.3969412,
+    "seen": 1794157461.7233388,
+    "ast_hash": "8665fbb722d1e0cd30b778a5aaa275ed",
+    "semantic_hash": ""
   },
   "stool.js": {
     "mtime": 1789574846.3617058,
@@ -42,9 +42,9 @@
     "semantic_hash": "7134e6a92b559b070d855369182dfb7a"
   },
   "README.md": {
-    "mtime": 1794148789.5205421,
-    "seen": 1794148866.7641335,
-    "ast_hash": "2136a33fe4526558cf30cc0b55bca6c5",
+    "mtime": 1794155856.2707415,
+    "seen": 1794157461.7233484,
+    "ast_hash": "16bdc139c8929ec7470de7d1144950ba",
     "semantic_hash": ""
   },
   "index.html": {
@@ -309,6 +309,12 @@
     "mtime": 1794141723.616604,
     "seen": 1794141927.9489229,
     "ast_hash": "32b8a1b9f9814f1011ca564478d2236a",
+    "semantic_hash": ""
+  },
+  "check-package.mjs": {
+    "mtime": 1794157076.8694544,
+    "seen": 1794157461.7233305,
+    "ast_hash": "29781df9d82b67fbec8f5390f5017bad",
     "semantic_hash": ""
   },
   "package-lock.json": {

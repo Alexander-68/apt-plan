@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SCALE, X, Z, unX, unZ, CEILING, outline, rooms, walls, windows, doors, inside, fitsFurniture } from './plan.js';
 import { wallCorners, cornerSpan } from './wall-edges.js';
 import { createStool } from './stool.js';
@@ -175,22 +176,27 @@ for(const [x,z,s] of [[480,60,1],[690,115,.85],[1000,55,1.2],[1320,90,1],[1600,2
 }
 // Trees would shade the glazing; renderings show sunlit floor patches by the windows.
 garden.traverse(o=>o.castShadow=false);
-for(const [x1,z1,x2,z2,t=12] of walls) {
+// One wall run as built: thickened by its own t, with each end reaching the outer face of the
+// thickest wall meeting there unless it stops flush at an opening. Shared with wallFootprints so
+// the joined corner lines never depend on how the scene meshes are batched.
+function wallBlock(x1,z1,x2,z2,t=12) {
   const horizontal=z1===z2;
   // Wall junctions overlap, but an opening's clear span must not be covered by end caps.
   const meetsOpening=(x,z)=>[...doors,...windows].some(([a,b,c,d])=>horizontal===(b===d)&&
     ((x===a&&z===b)||(x===c&&z===d)));
-  // A wall end that stops at an opening stays flush with the opening's face. Otherwise it reaches
-  // the outer face of the thickest wall meeting at that junction: a thin wall stopping at half its
-  // own thickness leaves a notch where a thicker wall crosses it.
   const reach=(x,z)=>Math.max(t/2,...walls.filter(([a,b,c,d])=>b===d
     ? z===b&&x>=Math.min(a,c)&&x<=Math.max(a,c)
     : a===c&&x===a&&z>=Math.min(b,d)&&z<=Math.max(b,d)).map(([,, , ,u=12])=>u/2));
   const start=meetsOpening(x1,z1)?0:reach(x1,z1),end=meetsOpening(x2,z2)?0:reach(x2,z2);
   const w=horizontal?x2-x1+start+end:t,d=horizontal?t:z2-z1+start+end;
   const x=(x1+x2)/2+(horizontal?(end-start)/2:0),z=(z1+z2)/2+(horizontal?0:(end-start)/2);
+  return {x,z,w,d};
+}
+const wallTrims=new THREE.Group();scene.add(wallTrims);
+for(const [x1,z1,x2,z2,t=12] of walls) {
+  const {x,z,w,d}=wallBlock(x1,z1,x2,z2,t);
   box(x,z,w,d,CEILING,0,M.wall,0,architecture);solid(x,z,w,d);
-  box(x,z,w+1,d+1,.065,.01,M.trim);
+  box(x,z,w+1,d+1,.065,.01,M.trim,0,wallTrims);
 }
 for(const [x1,z1,x2,z2,{head=2.25,style}={}] of doors) {
   const horizontal=z1===z2,x=(x1+x2)/2,z=(z1+z2)/2;
@@ -286,15 +292,21 @@ for(const [x1,z1,x2,z2,{id,depth=16,sill,head,panels,rail,sashes=[],sashBottom,o
   }
 }
 // Structural columns visible in the drawing.
-for(const [x,z,w,d] of [[490,235,70,70],[1420,235,70,70],[1410,905,90,60],[515,905,105,70],[940,963,75,55]]) {
+const columnRects=[[490,235,70,70],[1420,235,70,70],[1410,905,90,60],[515,905,105,70],[940,963,75,55]];
+for(const [x,z,w,d] of columnRects) {
   box(x,z,w,d,CEILING,0,M.wall,0,architecture);solid(x,z,w,d);
 }
 const placementWalls=colliders.map(([x1,z1,x2,z2])=>[unX(x1),unZ(z1),unX(x2),unZ(z2)]);
-// Outline the joined footprint, not the end faces of individual wall blocks.
-const wallFootprints=architecture.children.map(o=>{
-  const {width,depth}=o.geometry.parameters,x=unX(o.position.x),z=unZ(o.position.z);
-  return [x-width/SCALE/2,z-depth/SCALE/2,x+width/SCALE/2,z+depth/SCALE/2].map(v=>Math.round(v*1000)/1000);
-});
+// Outline the joined footprint from the plan data rather than from the scene meshes: those are
+// batched into fewer draw calls below, and the corner lines must not care how they are batched.
+const wallFootprints=[
+  ...walls.map(([x1,z1,x2,z2,t=12])=>{const {x,z,w,d}=wallBlock(x1,z1,x2,z2,t);return [x-w/2,z-d/2,x+w/2,z+d/2];}),
+  ...windows.map(([x1,z1,x2,z2,{depth=16}])=>{
+    const horizontal=z1===z2,w=horizontal?x2-x1:depth,d=horizontal?depth:z2-z1;
+    return [(x1+x2-w)/2,(z1+z2-d)/2,(x1+x2+w)/2,(z1+z2+d)/2];
+  }),
+  ...columnRects.map(([x,z,w,d])=>[x-w/2,z-d/2,x+w/2,z+d/2]),
+];
 function edgeLines(points,parent) {
   const lines=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points),wallEdgeMaterial);
   lines.renderOrder=1;parent.add(lines);return lines;
@@ -1068,6 +1080,34 @@ function renderFrame(time) {
 }
 orbit.addEventListener('change',()=>requestRender());
 renderer.domElement.addEventListener('webglcontextrestored',()=>requestRender(true));
+// Batch the static architecture and ceiling boxes per material: one draw call per material instead
+// of one per box, which is most of the overview frame cost on the embedded-GPU target. Named sills
+// (read by the browser check), lines, glazing, the furniture and anything transparent are untouched.
+function mergeStaticBoxes(group) {
+  const buckets=new Map();
+  for(const child of group.children) {
+    if(!child.isMesh||child.isInstancedMesh||child.name.endsWith('-sill'))continue;
+    if(Array.isArray(child.material)||child.material.transparent)continue;
+    const list=buckets.get(child.material)??[];list.push(child);buckets.set(child.material,list);
+  }
+  for(const [material,list] of buckets) {
+    if(list.length<2)continue;
+    // Rounded boxes are non-indexed and plain boxes are indexed; normalise so a material's bucket
+    // can hold both, which mergeGeometries() otherwise rejects.
+    const geometries=list.map(child=>{
+      child.updateMatrix();
+      const geo=child.geometry.clone().applyMatrix4(child.matrix);
+      return geo.index?geo.toNonIndexed():geo;
+    });
+    const merged=mergeGeometries(geometries,false);
+    if(!merged)continue;
+    const batched=new THREE.Mesh(merged,material);
+    batched.castShadow=list.some(child=>child.castShadow);batched.receiveShadow=true;
+    for(const child of list)group.remove(child);
+    group.add(batched);
+  }
+}
+mergeStaticBoxes(architecture);mergeStaticBoxes(overhead);mergeStaticBoxes(wallTrims);
 restoreFurniture();
 setMode('overview');
 renderer.render(scene,camera);$('#loading').classList.add('done');
