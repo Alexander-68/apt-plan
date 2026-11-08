@@ -1,0 +1,4 @@
+# OmniGate test-hosting only — not part of the app
+build-omnigate.ps1
+omnigate.json
+HOW_TO_MAKE_OMNIGATE_WEB_APPS.md
