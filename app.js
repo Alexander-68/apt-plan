@@ -12,7 +12,12 @@ const $ = s => document.querySelector(s);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#edece5');
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'low-power'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+// Integrated GPUs are fill-rate bound here (Iris Xe: ~22 ms a frame at pixel ratio 2, ~13 ms at 1.5,
+// while the CPU submits a frame in 2–4 ms). adaptPixelRatio() steps the ratio down 0.25 at a time
+// on devices that need it (the Xe in the evening view settles at 1.75); everything else keeps the full ratio.
+let pixelSteps=0;const frameTimes=[];
+const pixelRatio=()=>Math.max(Math.min(1,devicePixelRatio),Math.min(devicePixelRatio,2)-pixelSteps*.25);
+renderer.setPixelRatio(pixelRatio());
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.autoUpdate = false;
@@ -1028,7 +1033,7 @@ for(const b of document.querySelectorAll('[data-move]')) {
 }
 function resize(){
   if(!innerWidth||!innerHeight)return;
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setPixelRatio(pixelRatio());
   camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);requestRender();
 }
 addEventListener('resize',resize);
@@ -1040,12 +1045,22 @@ function move(dt) {
   const steps=Math.ceil(Math.hypot(dx,dz)/.06);
   for(let i=0;i<steps;i++){if(canStand(camera.position.x+dx/steps,camera.position.z))camera.position.x+=dx/steps;if(canStand(camera.position.x,camera.position.z+dz/steps))camera.position.z+=dz/steps;}
 }
+// Fed only while frames run back to back (walking, orbiting). Thirty frames whose trimmed mean (the
+// middle 20) is slower than 50 fps cost one step, never below a ratio of 1. Trimming ignores one-off
+// hitches such as a shader compile, while a vsync-bound 45 fps (alternating 16.7 and 33 ms frames)
+// still counts as slow. A step is never taken back, so the ratio cannot oscillate.
+function adaptPixelRatio(ms) {
+  frameTimes.push(ms);if(frameTimes.length<30)return;
+  const middle=frameTimes.sort((a,b)=>a-b).slice(5,25),mean=middle.reduce((a,b)=>a+b)/middle.length;frameTimes.length=0;
+  if(mean>20&&pixelRatio()>Math.min(1,devicePixelRatio)){pixelSteps++;resize();}
+}
 let frameId=0;
 function requestRender(shadows=false) {
   if(shadows)renderer.shadowMap.needsUpdate=true;
   if(!frameId&&!document.hidden)frameId=requestAnimationFrame(renderFrame);
 }
 function renderFrame(time) {
+  if(lastTime)adaptPixelRatio(time-lastTime);
   const dt=lastTime?Math.min((time-lastTime)/1000,.05):1/60;lastTime=time;
   const walking=mode==='walk'&&keys.size>0&&!document.querySelector('dialog[open]');
   const orbiting=mode==='overview'&&!furnitureDrag&&orbit.update();

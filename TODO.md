@@ -24,18 +24,21 @@ graphify update .    # after code edits (AST only, no API cost)
 
 ## 1. Open
 
-- [ ] **Instance the repeated decor (performance).** Measured with `artifacts/probe-draws.mjs`:
-      overview 669 draw calls, walk with shadow refresh 1397, walk steady 296. Battens, shutter
-      slats, cubbies, book rows and backsplash tiles are separate same-material meshes;
-      `InstancedMesh` (as for the bath pebbles) would collapse them. Do it only if a low-end device
-      is measured struggling — 669 is workable. *Care:* furniture must stay separate; keep `*-sill`
-      meshes named, `check.mjs` reads them.
+- [ ] **Instance the repeated decor — low value, measured.** On an Intel Iris Xe the CPU submits a
+      frame in 2–4 ms while the GPU needs ~22 ms at pixel ratio 2, so draw calls (overview 669) are
+      not the bottleneck; `adaptPixelRatio()` handles the fill cost. Revisit only if a CPU-bound
+      device shows up. Probes: `artifacts/probe-cost.mjs` (CPU vs GPU per view), `probe-adapt.mjs`
+      (ratio settling while walking), `probe-boot.mjs` / `probe-stool2-profile.mjs` (startup).
 - [ ] `stool2.js` seat side walls take UVs from `(x,z)` only, so the 25 mm edge reads as a flat
       strip. `stool.js` solves this with `edgeQuad`; give ExtrudeGeometry group 1 its own strip UV.
 - [ ] Intro areas on 360×640 portrait now sit on a translucent backing but still cover part of the
       model. Moving the model down at very short portrait heights would be cleaner.
 
 ## 2. Accepted — do not "fix" without a reason
+
+- **Antialiasing stays on.** MSAA costs only 5–10% of GPU time on the Xe even at pixel ratio 2.
+- **Pixel ratio steps down only, never back up**, so it cannot oscillate; a reload restores it.
+  Daylight on the Xe stays at 2; the evening view (ten point lights) settles at 1.75 and 60 fps.
 
 - **`webglcontextlost`** is not handled in `app.js`: Three's `WebGLRenderer` already calls
   `preventDefault()` on loss, so restore fires and `webglcontextrestored` re-renders.

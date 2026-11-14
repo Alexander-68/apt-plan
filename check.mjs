@@ -297,6 +297,15 @@ const HOOKS_SOURCE=`
       camera.position.set(X(second?871:1094),1.2,Z(second?510:841));
       camera.lookAt((second?daughterStool:studyStool).position.clone().add(new THREE.Vector3(0,.23,0)));requestRender();
     },
+    pixelCheck:runs=>{
+      // Pretend to be a pixel-ratio-2 screen, feed each run of frame times from a fresh start, restore.
+      const real=Object.getOwnPropertyDescriptor(window,'devicePixelRatio');
+      if(typeof adaptPixelRatio!=='function'||!Array.isArray(frameTimes))testStale('pixelCheck','adaptPixelRatio/frameTimes missing');
+      Object.defineProperty(window,'devicePixelRatio',{value:2,configurable:true});
+      const ratios=runs.map(run=>{pixelSteps=0;frameTimes.length=0;resize();for(const ms of run)adaptPixelRatio(ms);return renderer.getPixelRatio();});
+      Object.defineProperty(window,'devicePixelRatio',real);pixelSteps=0;frameTimes.length=0;resize();
+      return [...ratios,renderer.getPixelRatio()];
+    },
     furnitureCheck:()=>furniture.map(object=>{
       if(!Array.isArray(object.userData.colliders))testStale('furnitureCheck','furniture colliders missing');
       const bounds=new THREE.Box3().setFromObject(object);
@@ -352,7 +361,7 @@ const HOOKS_SOURCE=`
     }
   };
 `;
-const HOOK_NAMES=['renderCheck','toMetres','assetsCheck','openingCheck','photoView','stoolCheck','stool2Check','stoolPreview','stoolInRoom','furnitureCheck','furnitureCamera','dropPoint','layoutCheck','cameraCheck','checkWallEdges','screenshotColours','blockRoomSpawn','touchFurniture'];
+const HOOK_NAMES=['renderCheck','toMetres','assetsCheck','openingCheck','photoView','stoolCheck','stool2Check','pixelCheck','stoolPreview','stoolInRoom','furnitureCheck','furnitureCamera','dropPoint','layoutCheck','cameraCheck','checkWallEdges','screenshotColours','blockRoomSpawn','touchFurniture'];
 async function assertHooks(target) {
   const missing=await target.evaluate(names=>{
     const hooks=window.testHooks;
@@ -402,6 +411,11 @@ try {
   await page.waitForFunction(()=>window.testHooks.renderCheck().pending===0);
   assert.equal(await page.evaluate(()=>apartment.revision),'187');
   assert.ok(await page.evaluate(()=>apartment.drawCalls)>100);
+  {
+    const frames=(n,ms)=>Array(n).fill(ms),hitch=[...frames(25,16.7),...frames(5,400)],vsync45=[...frames(15,16.7),...frames(15,33)];
+    assert.deepEqual(await page.evaluate(runs=>testHooks.pixelCheck(runs),[frames(30,16.7),hitch,vsync45,frames(30,33),frames(300,33)]),[2,2,1.75,1.75,1,1],
+      'Pixel ratio holds at 60 fps and through hitches, steps down at 45 fps, steps down 0.25 per 30 slow frames, stops at 1, and the page ratio is restored');
+  }
   assert.ok(await page.evaluate(()=>testHooks.checkWallEdges()),'Joined corner and opening lines replace individual block outlines');
   const openings=await page.evaluate(()=>testHooks.openingCheck());
   assert.deepEqual(openings.panes,{'living-window':3,'daughter-window':2,'master-north-window':3,

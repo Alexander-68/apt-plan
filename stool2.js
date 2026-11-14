@@ -10,13 +10,13 @@ export function createStool2() {
   function generateBumpTexture(sourceCanvas) {
       const w = sourceCanvas.width;
       const h = sourceCanvas.height;
-      const srcCtx = sourceCanvas.getContext('2d');
+      const srcCtx = sourceCanvas.getContext('2d', { willReadFrequently: true });
       const srcData = srcCtx.getImageData(0, 0, w, h).data;
 
       const bumpCanvas = document.createElement('canvas');
       bumpCanvas.width = w;
       bumpCanvas.height = h;
-      const bumpCtx = bumpCanvas.getContext('2d');
+      const bumpCtx = bumpCanvas.getContext('2d', { willReadFrequently: true });
       const bumpImg = bumpCtx.createImageData(w, h);
       const dst = bumpImg.data;
 
@@ -31,13 +31,17 @@ export function createStool2() {
       return new THREE.CanvasTexture(bumpCanvas);
   }
 
+  // Per-dab colours are a constant rgb() plus globalAlpha: a fresh rgba() string per dab is parsed
+  // every time, which was most of the generation cost on slow CPUs. Contexts are willReadFrequently
+  // (CPU-backed): tens of thousands of tiny dabs followed by a pixel read rasterise faster there than
+  // on a GPU canvas that has to flush and read back (377 → 180 ms here, ~2 s → 1.2 s at 4x throttle).
   // The canvases are drawn at their authored size (stroke widths are in canvas pixels), then
   // downsampled before upload: about 0.7 mm per texel, a quarter of the original GPU memory.
   function finish(canvas, divisor) {
       const small = document.createElement('canvas');
       small.width = canvas.width / divisor;
       small.height = canvas.height / divisor;
-      const ctx = small.getContext('2d');
+      const ctx = small.getContext('2d', { willReadFrequently: true });
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(canvas, 0, 0, small.width, small.height);
       return { texture: new THREE.CanvasTexture(small), bumpTexture: generateBumpTexture(small) };
@@ -48,7 +52,7 @@ export function createStool2() {
       const canvas = document.createElement('canvas');
       canvas.width = 1536;
       canvas.height = 1536;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       // Richer warm honey amber base tone (darker than pale blonde)
       ctx.fillStyle = '#c7965f';
@@ -70,6 +74,7 @@ export function createStool2() {
       }
 
       // Organic wood grain fibers and cathedral arch loops (Flame grain on plank 2 & 3)
+      ctx.fillStyle = 'rgb(132, 82, 38)';
       for (let y = 0; y < 1536; y += 2) {
           for (let x = 0; x < 1536; x += 3) {
               const staveIdx = Math.floor(x / plankWidth);
@@ -85,8 +90,8 @@ export function createStool2() {
 
               const grainVal = Math.sin((x + waveOffset) * 0.08 + Math.sin(y * 0.004) * 4);
               if (grainVal > 0.65) {
-                  ctx.fillStyle = `rgba(132, 82, 38, ${0.05 + (grainVal - 0.65) * 0.16})`;
-                  ctx.fillRect(x, y, 2.5, 3.5);
+                  ctx.globalAlpha = 0.05 + (grainVal - 0.65) * 0.16;
+                  ctx.fillRect(x, y, 2.5, 3.5); ctx.globalAlpha = 1;
               }
           }
       }
@@ -99,12 +104,12 @@ export function createStool2() {
           const width = 0.9 + rand() * 1.1;
           const alpha = 0.10 + rand() * 0.22;
 
-          ctx.fillStyle = `rgba(85, 48, 18, ${alpha})`;
-          ctx.fillRect(px, py, width, len);
+          ctx.fillStyle = 'rgb(85, 48, 18)'; ctx.globalAlpha = alpha;
+          ctx.fillRect(px, py, width, len); ctx.globalAlpha = 1;
 
           // Adjacent faint highlight pore rim for natural depth
-          ctx.fillStyle = `rgba(255, 235, 210, ${alpha * 0.4})`;
-          ctx.fillRect(px + 0.8, py + 1, 0.7, len * 0.7);
+          ctx.fillStyle = 'rgb(255, 235, 210)'; ctx.globalAlpha = alpha * 0.4;
+          ctx.fillRect(px + 0.8, py + 1, 0.7, len * 0.7); ctx.globalAlpha = 1;
       }
 
       // Fine glued seam lines between staves with micro-bevel shading
@@ -126,7 +131,7 @@ export function createStool2() {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
       canvas.height = 256;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       // Warm golden-amber base gradient
       const grad = ctx.createLinearGradient(0, 0, 0, 256);
@@ -137,13 +142,14 @@ export function createStool2() {
       ctx.fillRect(0, 0, 1024, 256);
 
       // Horizontal long grain fibers and natural wavy figure
+      ctx.fillStyle = 'rgb(130, 80, 36)';
       for (let y = 0; y < 256; y += 2) {
           for (let x = 0; x < 1024; x += 4) {
               const wave = Math.sin(x * 0.012) * 10 + Math.cos(x * 0.003) * 6;
               const grainVal = Math.sin((y + wave) * 0.12 + Math.sin(x * 0.005) * 3);
               if (grainVal > 0.6) {
-                  ctx.fillStyle = `rgba(130, 80, 36, ${0.05 + (grainVal - 0.6) * 0.14})`;
-                  ctx.fillRect(x, y, 4, 2);
+                  ctx.globalAlpha = 0.05 + (grainVal - 0.6) * 0.14;
+                  ctx.fillRect(x, y, 4, 2); ctx.globalAlpha = 1;
               }
           }
       }
@@ -156,12 +162,12 @@ export function createStool2() {
           const h = 0.9 + rand() * 1.0;
           const alpha = 0.09 + rand() * 0.18;
 
-          ctx.fillStyle = `rgba(88, 48, 20, ${alpha})`;
-          ctx.fillRect(px, py, len, h);
+          ctx.fillStyle = 'rgb(88, 48, 20)'; ctx.globalAlpha = alpha;
+          ctx.fillRect(px, py, len, h); ctx.globalAlpha = 1;
 
           // Micro highlight rim
-          ctx.fillStyle = `rgba(255, 235, 210, ${alpha * 0.4})`;
-          ctx.fillRect(px + 1, py + 0.7, len * 0.6, 0.6);
+          ctx.fillStyle = 'rgb(255, 235, 210)'; ctx.globalAlpha = alpha * 0.4;
+          ctx.fillRect(px + 1, py + 0.7, len * 0.6, 0.6); ctx.globalAlpha = 1;
       }
 
       const result = finish(canvas, 2);
@@ -174,7 +180,7 @@ export function createStool2() {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
       canvas.height = 512;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       // Darker warm honey wood base
       ctx.fillStyle = '#c79762';
@@ -267,7 +273,7 @@ export function createStool2() {
           const rotCanvas = document.createElement('canvas');
           rotCanvas.width = 512;
           rotCanvas.height = 512;
-          const rotCtx = rotCanvas.getContext('2d');
+          const rotCtx = rotCanvas.getContext('2d', { willReadFrequently: true });
           rotCtx.translate(256, 256);
           rotCtx.rotate(Math.PI / 2);
           rotCtx.drawImage(canvas, -256, -256);
@@ -282,19 +288,20 @@ export function createStool2() {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
       canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       // Darker warm honey wood post
       ctx.fillStyle = '#c79762';
       ctx.fillRect(0, 0, 512, 1024);
 
       // Continuous vertical wood grain fibers down the entire leg
+      ctx.fillStyle = 'rgb(130, 80, 38)';
       for (let y = 0; y < 1024; y += 3) {
           for (let x = 0; x < 512; x += 3) {
               const grain = Math.sin(x * 0.08 + Math.sin(y * 0.005) * 4);
               if (grain > 0.58) {
-                  ctx.fillStyle = `rgba(130, 80, 38, ${0.04 + (grain - 0.58) * 0.13})`;
-                  ctx.fillRect(x, y, 2.5, 4);
+                  ctx.globalAlpha = 0.04 + (grain - 0.58) * 0.13;
+                  ctx.fillRect(x, y, 2.5, 4); ctx.globalAlpha = 1;
               }
           }
       }
@@ -304,8 +311,8 @@ export function createStool2() {
           const px = rand() * 512;
           const py = rand() * 1024;
           const len = 5 + rand() * 11;
-          ctx.fillStyle = `rgba(88, 48, 20, ${0.09 + rand() * 0.18})`;
-          ctx.fillRect(px, py, 1.1, len);
+          ctx.fillStyle = 'rgb(88, 48, 20)'; ctx.globalAlpha = 0.09 + rand() * 0.18;
+          ctx.fillRect(px, py, 1.1, len); ctx.globalAlpha = 1;
       }
 
       // Plunging 3 finger tenons extending down from top edge (top 10% = 4.5 cm in real scale)
@@ -370,17 +377,19 @@ export function createStool2() {
       const canvas = document.createElement('canvas');
       canvas.width = 512;
       canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
       ctx.fillStyle = '#c79762';
       ctx.fillRect(0, 0, 512, 1024);
+
+      ctx.fillStyle = 'rgb(130, 80, 38)';
 
       for (let y = 0; y < 1024; y += 3) {
           for (let x = 0; x < 512; x += 3) {
               const grain = Math.sin(x * 0.08 + Math.sin(y * 0.005) * 4);
               if (grain > 0.58) {
-                  ctx.fillStyle = `rgba(130, 80, 38, ${0.04 + (grain - 0.58) * 0.13})`;
-                  ctx.fillRect(x, y, 2.5, 4);
+                  ctx.globalAlpha = 0.04 + (grain - 0.58) * 0.13;
+                  ctx.fillRect(x, y, 2.5, 4); ctx.globalAlpha = 1;
               }
           }
       }
@@ -389,8 +398,8 @@ export function createStool2() {
           const px = rand() * 512;
           const py = rand() * 1024;
           const len = 5 + rand() * 11;
-          ctx.fillStyle = `rgba(88, 48, 20, ${0.09 + rand() * 0.18})`;
-          ctx.fillRect(px, py, 1.1, len);
+          ctx.fillStyle = 'rgb(88, 48, 20)'; ctx.globalAlpha = 0.09 + rand() * 0.18;
+          ctx.fillRect(px, py, 1.1, len); ctx.globalAlpha = 1;
       }
 
       return finish(canvas, 2);
