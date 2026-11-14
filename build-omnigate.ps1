@@ -16,7 +16,9 @@ foreach ($file in $bundleFiles) {
 }
 
 $destination = Join-Path $PSScriptRoot 'apt.zip'
-$stream = [System.IO.File]::Create($destination)
+# Build beside the target and move into place, so a failed build never leaves a corrupt apt.zip.
+$temporary = "$destination.tmp"
+$stream = [System.IO.File]::Create($temporary)
 $archive = [System.IO.Compression.ZipArchive]::new($stream, [System.IO.Compression.ZipArchiveMode]::Create)
 try {
     foreach ($file in $bundleFiles) {
@@ -29,4 +31,5 @@ try {
     $archive.Dispose()
     $stream.Dispose()
 }
+Move-Item -LiteralPath $temporary -Destination $destination -Force
 Write-Output "Built $destination"

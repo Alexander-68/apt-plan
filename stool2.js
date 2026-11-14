@@ -3,6 +3,9 @@ import * as THREE from 'three';
 // Extracted from wooden_stool_3d_viewer.html: original geometry and procedural wood.
 // Metres, assembled at floor level; viewer UI, lighting and animation are omitted.
 export function createStool2() {
+  // Seeded so the grain, and the browser check's screenshots, are identical on every load.
+  let seed = 7;
+  const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
   // Generates a normal/bump map directly from a canvas's brightness channel
   function generateBumpTexture(sourceCanvas) {
       const w = sourceCanvas.width;
@@ -78,11 +81,11 @@ export function createStool2() {
 
       // Characteristic Rubberwood Vascular Pores (fine dark dashes aligned with grain)
       for (let i = 0; i < 9000; i++) {
-          const px = Math.random() * 1536;
-          const py = Math.random() * 1536;
-          const len = 4 + Math.random() * 9;
-          const width = 0.9 + Math.random() * 1.1;
-          const alpha = 0.10 + Math.random() * 0.22;
+          const px = rand() * 1536;
+          const py = rand() * 1536;
+          const len = 4 + rand() * 9;
+          const width = 0.9 + rand() * 1.1;
+          const alpha = 0.10 + rand() * 0.22;
 
           ctx.fillStyle = `rgba(85, 48, 18, ${alpha})`;
           ctx.fillRect(px, py, width, len);
@@ -137,11 +140,11 @@ export function createStool2() {
 
       // Horizontal rubberwood vascular pores
       for (let i = 0; i < 4000; i++) {
-          const px = Math.random() * 1024;
-          const py = Math.random() * 256;
-          const len = 6 + Math.random() * 14;
-          const h = 0.9 + Math.random() * 1.0;
-          const alpha = 0.09 + Math.random() * 0.18;
+          const px = rand() * 1024;
+          const py = rand() * 256;
+          const len = 6 + rand() * 14;
+          const h = 0.9 + rand() * 1.0;
+          const alpha = 0.09 + rand() * 0.18;
 
           ctx.fillStyle = `rgba(88, 48, 20, ${alpha})`;
           ctx.fillRect(px, py, len, h);
@@ -203,8 +206,8 @@ export function createStool2() {
               // Dense porous end-grain stippling
               ctx.fillStyle = 'rgba(88, 44, 16, 0.25)';
               for (let s = 0; s < 500; s++) {
-                  const sx = currentX + Math.random() * b.w;
-                  const sy = Math.random() * 512;
+                  const sx = currentX + rand() * b.w;
+                  const sy = rand() * 512;
                   ctx.fillRect(sx, sy, 1.3, 1.3);
               }
           } else {
@@ -227,8 +230,8 @@ export function createStool2() {
 
               ctx.fillStyle = 'rgba(110, 65, 28, 0.16)';
               for (let s = 0; s < 250; s++) {
-                  const sx = currentX + Math.random() * b.w;
-                  const sy = Math.random() * 512;
+                  const sx = currentX + rand() * b.w;
+                  const sy = rand() * 512;
                   ctx.fillRect(sx, sy, 1.2, 1.2);
               }
           }
@@ -296,10 +299,10 @@ export function createStool2() {
 
       // Characteristic rubberwood vascular pores
       for (let i = 0; i < 4500; i++) {
-          const px = Math.random() * 512;
-          const py = Math.random() * 1024;
-          const len = 5 + Math.random() * 11;
-          ctx.fillStyle = `rgba(88, 48, 20, ${0.09 + Math.random() * 0.18})`;
+          const px = rand() * 512;
+          const py = rand() * 1024;
+          const len = 5 + rand() * 11;
+          ctx.fillStyle = `rgba(88, 48, 20, ${0.09 + rand() * 0.18})`;
           ctx.fillRect(px, py, 1.1, len);
       }
 
@@ -383,10 +386,10 @@ export function createStool2() {
       }
 
       for (let i = 0; i < 4500; i++) {
-          const px = Math.random() * 512;
-          const py = Math.random() * 1024;
-          const len = 5 + Math.random() * 11;
-          ctx.fillStyle = `rgba(88, 48, 20, ${0.09 + Math.random() * 0.18})`;
+          const px = rand() * 512;
+          const py = rand() * 1024;
+          const len = 5 + rand() * 11;
+          ctx.fillStyle = `rgba(88, 48, 20, ${0.09 + rand() * 0.18})`;
           ctx.fillRect(px, py, 1.1, len);
       }
 

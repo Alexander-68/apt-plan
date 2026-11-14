@@ -94,7 +94,7 @@ function texture(kind) {
   const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return tex;
 }
 const floorTex=texture('floor'),travertineTex=texture('travertine'),pleatTex=texture('pleat');
-const oakTex=texture('oak'), fabricTex=texture('fabric'), stoneTex=texture('stone'), tileTex=texture('tile');
+const oakTex=texture('oak'), fabricTex=texture('fabric'), tileTex=texture('tile');
 const marbleTex=texture('marble'),grooveTex=texture('groove'),reededTex=texture('reeded');
 marbleTex.wrapS=marbleTex.wrapT=THREE.MirroredRepeatWrapping;
 const M={wall:material('#e9e1d3'),trim:material('#f5f2e7'),oak:material('#cbb18c',.65,{map:oakTex}),darkOak:material('#806044',.7,{map:oakTex}),stone:material('#ada595',.7,{map:travertineTex}),tile:material('#cdcec2',.65,{map:tileTex}),linen:material('#eee7d8',.95,{map:fabricTex}),sage:material('#829071',.95,{map:fabricTex}),clay:material('#ad785d',.9,{map:fabricTex}),dark:material('#303d35',.6),brass:material('#a68a54',.3,{metalness:.7}),white:material('#f7f5e9',.26),metal:material('#9caaa9',.25,{metalness:.8}),glass:material('#d6e6dc',.12,{transparent:true,opacity:.16,metalness:.1,depthWrite:false}),mirror:material('#a5c0bb',.06,{metalness:1}),leaf:material('#465d33',.8),soil:material('#493c2a')};
@@ -226,6 +226,7 @@ for(const [x1,z1,x2,z2,{head=2.25,style}={}] of doors) {
     box(cx,cz,w,3,head-.02,.01,M.whiteOak,0,leaf);
     stripWall(cx-w/2+1,cz-1.5,cx+w/2-1,cz,'north',head-.04,5,leaf,false);
     box(x1,cz-1,w*2,4,.03,head,M.paint,0,leaf);
+    solid(cx,cz,w,3);
   } else if(style==='reeded') {
     // Study: two reeded-glass sliding leaves with a clear lower band (p06), stacked on the desk side for walking.
     const lw=(x2-x1)/2+2;
@@ -321,10 +322,6 @@ const openingLines=edgeLines([...doors,...windows].flatMap(([x1,z1,x2,z2,options
     new THREE.Vector3(X(x+(horizontal?0:offset)),head,Z(z+(horizontal?offset:0)))));
 }),overhead);
 
-function rug(x,z,w,d,mat=M.linen) {
-  box(x,z,w,d,.018,.014,mat,.007);
-  for(let i=0;i<Math.floor(w/5);i++)for(const side of [-1,1])box(x-w/2+i*5,z+side*(d/2+2),.6,4,.006,.017,mat);
-}
 function cabinet(x,z,w,d,h=2.15,mat=M.oak,front='south') {
   box(x,z,w,d,h,.04,mat,.015);solid(x,z,w,d);
   const n=Math.max(1,Math.round((front==='west'||front==='east'?d:w)/43));
@@ -348,12 +345,7 @@ function plant(x,z,size=1) {
     const leaf=ball(x+dx,z+dz,.32*size+h,.085*size,.21*size,.034*size,M.leaf);leaf.rotation.set(.4,a,.45);
   }
 }
-function lamp(x,z,y=0) {
-  cyl(x,z,10,.03,y,M.brass);cyl(x,z,1,.40,y+.03,M.brass);
-  cyl(x,z,16,.25,y+.35,M.linen,10);cyl(x,z,11,.015,y+.355,material('#fff1d4',.8,{emissive:'#ffd294',emissiveIntensity:.7}));
-}
-function book(x,z,w=15,d=20,y=.5,color=M.sage) {box(x,z,w,d,.035,y,color);box(x,z,w-.5,d-1,.021,y+.007,M.linen);}
-function vase(x,z,y=.5){cyl(x,z,6,.19,y,M.clay,3);for(let i=0;i<3;i++){const o=box(x+i*2,z, .5,.5,.3,y+.17,M.leaf);o.rotation.z=(i-1)*.14;}}
+// Saved positions are world metres: bump the key whenever plan.js coordinates or SCALE change.
 const furniture=[],furnitureStorageKey='f-residence-furniture-v1';
 function movable(x,z,build) {
   const first=scene.children.length,firstCollider=colliders.length;
@@ -367,33 +359,6 @@ function movable(x,z,build) {
   group.userData.layoutId=`${x},${z}`;
   furniture.push(group);
   return group;
-}
-function chair(x,z,angle=0,mat=M.linen) {
-  const group=movable(x,z,()=>{
-    box(x,z,36,36,.095,.43,mat,.045);
-    box(x,z+15,36,5,.36,.49,mat,.035);
-    for(const dx of [-13,13])for(const dz of [-13,13])box(x+dx,z+dz,2.5,2.5,.43,0,M.darkOak);
-    solid(x,z,32,32);
-  });
-  group.rotation.y=angle;
-}
-function desk(x,z,w=45,d=95) {
-  movable(x,z,()=>{
-    box(x,z,w,d,.06,.75,M.oak,.02);solid(x,z,w,d);
-    for(const dx of [-w/2+4,w/2-4])for(const dz of [-d/2+4,d/2-4])box(x+dx,z+dz,3,3,.75,0,M.darkOak);
-    box(x,z-10,2,36,.27,.81,M.dark,.012);box(x-1.2,z-10,1,32,.22,.835,material('#8da09c',.45,{emissive:'#728e8f',emissiveIntensity:.15}));
-    box(x-12,z-10,10,24,.018,.816,M.metal,.007);book(x,z+d/2-14,17,23,.82);lamp(x,z-d/2+14,.81);
-  });
-}
-function bed(x,z,length,width,mat=M.sage) {
-  rug(x-7,z,length+34,width+42);
-  box(x,z,length,width,.25,.09,M.oak,.04);solid(x,z,length,width);
-  box(x+length/2-3,z,8,width+9,.92,.08,M.linen,.065);
-  box(x-1,z,length-5,width-4,.23,.34,M.linen,.07);
-  box(x-20,z,length-44,width-3,.09,.57,mat,.035);
-  box(x-45,z,32,width-1,.035,.65,M.linen,.016);
-  const count=width>120?2:1;
-  for(let i=0;i<count;i++) {const p=box(x+length/2-30,z+(i-(count-1)/2)*(width/2),36,width/count-13,.13,.58,M.linen,.06);p.rotation.y=.04*(i?1:-1);}
 }
 // Designer interior from the 2026-10-07 plan and renderings 1–10. Built-ins stop at 2.35 m under a bulkhead.
 const BUILT_IN=2.35;
@@ -751,7 +716,8 @@ function toilet(x,z,angle=0) {
   const group=new THREE.Group();scene.add(group);group.position.set(X(x),0,Z(z));const parts=[];
   parts.push(box(x,z+16,28,13,.72,0,M.white,.045));parts.push(ball(x,z,.25,.13,.24,.19,M.white));
   parts.push(ball(x,z-3,.44,.17,.065,.24,M.white));parts.push(ball(x,z-4,.491,.12,.012,.175,M.dark));parts.push(ball(x,z-4,.5,.087,.012,.138,M.white));
-  for(const o of parts)group.attach(o);group.rotation.y=angle;solid(x,z,33,48);
+  for(const o of parts)group.attach(o);group.rotation.y=angle;
+  const turned=Math.abs(Math.sin(angle))>.5;solid(x,z,turned?48:33,turned?33:48);
 }
 function vanity(x,z,w,d,front='south') {
   cabinet(x,z,w,d,.73,M.oak,front);box(x,z,w+2,d+2,.045,.78,M.stone,.018);
@@ -843,7 +809,7 @@ function wallState() {
   const full=mode==='walk'||fullWalls;
   architecture.scale.y=full?1:.29;glazing.visible=full;overhead.visible=full;ceiling.visible=walkOnly.visible=mode==='walk';garden.visible=mode==='walk';
   $('#walls').setAttribute('aria-pressed',String(full));$('#walls').disabled=mode==='walk';
-  $('#walls span').textContent=full?'Cutaway':'Full walls';
+  $('#walls span').textContent=mode==='walk'?'Walls up':full?'Cutaway':'Full walls';
   requestRender(true);
 }
 function resetView() {
@@ -876,11 +842,12 @@ function setMode(next,room=rooms[0]) {
     const [spawnX,spawnZ]=freeSpawn(X(room.point[0]),Z(room.point[1]));
     camera.position.set(spawnX,1.62,spawnZ);
     yaw=Math.atan2(-(room.look[0]-room.point[0]),-(room.look[1]-room.point[1]));pitch=['bath','guest','utility','kitchen'].includes(room.id)?-.48:-.2;
-    look();updateRoom();$('#hint').textContent=matchMedia('(pointer:coarse)').matches?'Drag to look · Arrow pad to move':'WASD / arrows to move · Drag to look · Esc releases mouse';
+    look();updateRoom();$('#hint').textContent=matchMedia('(any-pointer:coarse)').matches?'Drag to look · Arrow pad to move':'WASD / arrows to move · Drag to look · Esc releases mouse';
   }
   renderer.domElement.tabIndex=-1;renderer.domElement.focus({preventScroll:true});
 }
 function look(){camera.rotation.order='YXZ';camera.rotation.set(pitch,yaw,0);requestRender();}
+$('.spaces .panel-heading span:last-child').textContent=String(rooms.length).padStart(2,'0');
 for(const [i,r] of rooms.entries()) {
   const b=document.createElement('button');b.dataset.room=r.id;b.innerHTML=`<span class="number">${String(i+1).padStart(2,'0')}</span><span>${r.name}</span><span class="arrow">↗</span>`;b.addEventListener('click',()=>setMode('walk',r));$('#rooms').append(b);
 }
@@ -891,6 +858,7 @@ function updateRoom(){
   if(id!==currentRoom||mode==='overview') {
     currentRoom=id;$('#room-name').textContent=room?.name||'Hallway';
     for(const b of $('#rooms').children){b.classList.toggle('active',b.dataset.room===id);b.setAttribute('aria-current',b.dataset.room===id?'location':'false');}
+    if(id)$(`#rooms [data-room="${id}"]`).scrollIntoView({block:'nearest',inline:'nearest'});
   }
 }
 $('#overview').onclick=()=>setMode('overview');$('#walk').onclick=()=>setMode('walk');
@@ -902,7 +870,7 @@ function cleanView(on=!document.body.classList.contains('clean-view')) {
 }
 function editMode(on=!editing) {
   if(on&&mode!=='overview')setMode('overview');
-  editing=on;$('#edit').setAttribute('aria-pressed',String(on));
+  editing=on;$('#edit').setAttribute('aria-pressed',String(on));document.body.classList.toggle('editing',on);
   cleanView(on);
 }
 $('#edit').onclick=()=>editMode();
@@ -950,8 +918,9 @@ function placeFurniture(object,position,angle=object.rotation.y) {
   if(!fitsFurniture([unX(min.x),unZ(min.z),unX(max.x),unZ(max.z)],placementWalls)) {
     object.position.copy(start);object.rotation.y=startAngle;
   }
-  const {home,homeAngle,homeColliders}=object.userData;
-  const rotation=new THREE.Matrix4().makeRotationY(object.rotation.y-homeAngle);
+  // homeColliders are recorded before the build rotation is applied, so rotate by the full angle.
+  const {home,homeColliders}=object.userData;
+  const rotation=new THREE.Matrix4().makeRotationY(object.rotation.y);
   homeColliders.forEach(([x1,z1,x2,z2],i)=>{
     const bounds=new THREE.Box3(new THREE.Vector3(x1-home.x,0,z1-home.z),new THREE.Vector3(x2-home.x,0,z2-home.z));
     bounds.applyMatrix4(rotation).translate(object.position);
@@ -1003,7 +972,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{
   if(!object)return;
   const plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),point=new THREE.Vector3();
   if(!furnitureRay.ray.intersectPlane(plane,point))return;
-  furnitureDrag={object,plane,start:object.position.clone(),startAngle:object.rotation.y,offset:object.position.clone().sub(point),id:e.pointerId};
+  furnitureDrag={object,plane,start:object.position.clone(),startAngle:object.rotation.y,offset:object.position.clone().sub(point),id:e.pointerId,x:e.clientX,y:e.clientY};
   orbit.enabled=false;renderer.domElement.style.cursor='grabbing';
   renderer.domElement.setPointerCapture(e.pointerId);
   e.stopImmediatePropagation();e.preventDefault();
@@ -1022,13 +991,15 @@ renderer.domElement.addEventListener('pointermove',e=>{
 renderer.domElement.addEventListener('pointerup',e=>{
   const object=furnitureDrag?.object;
   if(e.pointerId!==furnitureDrag?.id)return;
-  const rotate=e.pointerType==='touch'&&lastFurnitureTap?.object===object&&e.timeStamp-lastFurnitureTap.time<600;
+  // Only two touch taps (neither moved beyond a few px) within 600 ms rotate; a tap then a drag does not.
+  const tap=e.pointerType==='touch'&&Math.hypot(e.clientX-furnitureDrag.x,e.clientY-furnitureDrag.y)<8;
+  const rotate=tap&&lastFurnitureTap?.object===object&&e.timeStamp-lastFurnitureTap.time<600;
   endFurnitureDrag();
   if(rotate){rotateFurniture(object);lastFurnitureTap=null;}
-  else lastFurnitureTap={object,time:e.timeStamp};
+  else lastFurnitureTap=tap?{object,time:e.timeStamp}:null;
 });
 for(const event of ['pointercancel','lostpointercapture'])renderer.domElement.addEventListener(event,e=>{
-  if(e.pointerId===furnitureDrag?.id)endFurnitureDrag();
+  if(e.pointerId===furnitureDrag?.id){endFurnitureDrag();lastFurnitureTap=null;}
 });
 addEventListener('blur',()=>{endFurnitureDrag();keys.clear();drag=null;});
 document.addEventListener('visibilitychange',()=>{
@@ -1054,7 +1025,11 @@ for(const b of document.querySelectorAll('[data-move]')) {
   b.addEventListener('pointerdown',e=>{e.preventDefault();keys.add(b.dataset.move);requestRender();b.setPointerCapture(e.pointerId);});
   for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>keys.delete(b.dataset.move));
 }
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);requestRender();}
+function resize(){
+  if(!innerWidth||!innerHeight)return;
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);requestRender();
+}
 addEventListener('resize',resize);
 function move(dt) {
   let forward=Number(keys.has('forward'))-Number(keys.has('back')),side=Number(keys.has('right'))-Number(keys.has('left'));
@@ -1108,8 +1083,9 @@ function mergeStaticBoxes(group) {
   }
 }
 mergeStaticBoxes(architecture);mergeStaticBoxes(overhead);mergeStaticBoxes(wallTrims);
+for(const object of furniture)placeFurniture(object,object.position.clone());
 restoreFurniture();
 setMode('overview');
 renderer.render(scene,camera);$('#loading').classList.add('done');
 // Small read-only diagnostics also let the browser check movement against actual rendered geometry.
-window.apartment={get mode(){return mode;},get position(){return {x:camera.position.x,z:camera.position.z};},get room(){return currentRoom;},get meshes(){return renderer.info.render.calls;},canStand,rooms,colliders,revision:THREE.REVISION};
+window.apartment={get mode(){return mode;},get position(){return {x:camera.position.x,z:camera.position.z};},get room(){return currentRoom;},get drawCalls(){return renderer.info.render.calls;},canStand,rooms,colliders,revision:THREE.REVISION};

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from '@playwright/test';
 import { ORIGIN_X, ORIGIN_Z, X, Z, unX, unZ, CEILING, outline, rooms, windows, doors, walls, inside, fitsFurniture } from './plan.js';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm } from 'node:fs/promises';
 import { wallCorners, cornerSpan } from './wall-edges.js';
 
 const EPS=1e-9;
@@ -57,6 +57,13 @@ const distanceToOutline=(x,z)=>{
 
 // ---- wall-edge geometry ----
 assert.deepEqual(wallCorners([[0,0,4,1],[0,0,1,4]]),[[0,0],[0,4],[4,0],[4,1],[1,1],[1,4]],'L junction has outer and inner corners without block seams');
+// The intro's floor areas are the room polygons summed (utility balcony excluded from the first).
+{
+  const area=poly=>Math.abs(poly.reduce((sum,[x,z],i)=>{const [x2,z2]=poly[(i+1)%poly.length];return sum+x*z2-x2*z;},0))/2*(X(1)-X(0))**2;
+  const total=rooms.reduce((sum,room)=>sum+area(room.poly),0),interior=total-area(rooms.find(room=>room.id==='utility').poly);
+  const html=await readFile('index.html','utf8'),PING=3.305785;
+  for(const m of [interior,total])assert.ok(html.includes(`<b>${m.toFixed(1)} m² · ${(m/PING).toFixed(1)} 坪</b>`),`index.html shows ${m.toFixed(1)} m² · ${(m/PING).toFixed(1)} 坪 from the room polygons`);
+}
 assert.deepEqual(wallCorners([[0,0,2,1],[2,0,4,1]]),[[0,0],[0,1],[4,0],[4,1]],'Straight wall joins have no corner lines');
 assert.deepEqual(cornerSpan(3,1,[[2,0,4,0]],[],1),[0,2.25],'Door jamb stops at header');
 assert.deepEqual(cornerSpan(1,1,[[2,0,4,0]],[],1),[0,CEILING],'Adjacent room corner stays full height');
@@ -374,6 +381,10 @@ const watchPage=target=>{
   });
 };
 
+await fetch('http://127.0.0.1:4173/').catch(()=>{console.error('No server on 127.0.0.1:4173. Run `npm start` in another terminal first.');process.exit(1);});
+// A failure before a screenshot must not leave the previous run's image for a reviewer.
+await mkdir('artifacts',{recursive:true});
+for(const name of await readdir('artifacts'))if(name.endsWith('.png'))await rm(`artifacts/${name}`);
 const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--enable-webgl','--ignore-gpu-blocklist']});
 try {
   const page=await browser.newPage({viewport:{width:1536,height:1000},deviceScaleFactor:1});
@@ -390,7 +401,7 @@ try {
   await page.evaluate(()=>document.fonts.ready);
   await page.waitForFunction(()=>window.testHooks.renderCheck().pending===0);
   assert.equal(await page.evaluate(()=>apartment.revision),'187');
-  assert.ok(await page.evaluate(()=>apartment.meshes)>100);
+  assert.ok(await page.evaluate(()=>apartment.drawCalls)>100);
   assert.ok(await page.evaluate(()=>testHooks.checkWallEdges()),'Joined corner and opening lines replace individual block outlines');
   const openings=await page.evaluate(()=>testHooks.openingCheck());
   assert.deepEqual(openings.panes,{'living-window':3,'daughter-window':2,'master-north-window':3,

@@ -13,6 +13,8 @@ export function wallCorners(rectangles) {
   return corners;
 }
 
+// Plan px in (x, z, halfThickness), metres out ([bottom, top]). halfThickness is one global value and
+// the first opening within it wins; fine while openings are farther apart than a wall is thick.
 export function cornerSpan(x,z,doors,windows,halfThickness) {
   const beside=([x1,z1,x2,z2])=>z1===z2
     ? x>=x1&&x<=x2&&Math.abs(z-z1)<=halfThickness

@@ -313,12 +313,12 @@ try {
 
   await page.goto(`${origin}/`, { waitUntil: 'load', timeout: 60000 });
   await page.waitForFunction(() => window.apartment, { timeout: 60000 });
-  await page.waitForFunction(() => window.apartment && window.apartment.revision === '187' && window.apartment.meshes > 100, { timeout: 30000 });
+  await page.waitForFunction(() => window.apartment && window.apartment.revision === '187' && window.apartment.drawCalls > 100, { timeout: 30000 });
   await page.waitForTimeout(1000);
 
-  const boot = await page.evaluate(() => ({ revision: window.apartment.revision, meshes: window.apartment.meshes }));
+  const boot = await page.evaluate(() => ({ revision: window.apartment.revision, drawCalls: window.apartment.drawCalls }));
   assert.equal(boot.revision, '187', 'apartment.revision should be 187');
-  assert.ok(boot.meshes > 100, `apartment.meshes should be > 100 (got ${boot.meshes})`);
+  assert.ok(boot.drawCalls > 100, `apartment.drawCalls should be > 100 (got ${boot.drawCalls})`);
   assert.deepEqual(pageErrors, [], `uncaught page errors: ${pageErrors.join('; ')}`);
 
   const badStatus = localResponses.filter((response) => response.status < 200 || response.status >= 300);
@@ -333,7 +333,7 @@ try {
 
   console.log(`Derived runtime files (${runtime.size}): ${[...runtime].sort().join(', ')}`);
   console.log(`PASS: apt.zip has ${actual.size} entries; .assetsignore un-ignores ${ignoredFiles.size} runtime files; ` +
-    `local server answered ${localResponses.length} requests (all 2xx); app booted with revision ${boot.revision} and ${boot.meshes} meshes; ` +
+    `local server answered ${localResponses.length} requests (all 2xx); app booted with revision ${boot.revision} and ${boot.drawCalls} draw calls; ` +
     `${allResponses.length} total responses recorded.`);
 } catch (error) {
   exitCode = 1;

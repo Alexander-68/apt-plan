@@ -1,5 +1,6 @@
 {
-  "name": "play3js",
+  "name": "f-residence",
+  "private": true,
   "version": "1.0.0",
   "description": "Interactive Three.js walkthrough traced from the Apartment F plan",
   "scripts": {
@@ -8,6 +9,9 @@
     "start": "python -m http.server 4173 --bind 127.0.0.1"
   },
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@playwright/test": "^1.63.0"
   }
