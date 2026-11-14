@@ -1,17 +1,17 @@
 # Graph Report - apt  (2026-11-14)
 
 ## Corpus Check
-- 11 files · ~15,612 words
+- 11 files · ~14,373 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .css 1)
 
 ## Summary
-- 436 nodes · 866 edges · 21 communities (16 shown, 5 thin omitted)
-- Extraction: 91% EXTRACTED · 8% INFERRED · 1% AMBIGUOUS · INFERRED: 68 edges (avg confidence: 0.84)
+- 431 nodes · 853 edges · 21 communities (16 shown, 5 thin omitted)
+- Extraction: 92% EXTRACTED · 7% INFERRED · 1% AMBIGUOUS · INFERRED: 60 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `14024b9f`
+- Built from commit: `18ab3044`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,9 +24,10 @@
 - Navigation & Furniture Editing
 - check.mjs
 - Seating & Mesh Helpers
-- Daughter Room Design
+- Living Room Windows (photo)
 - Cloudflare Workers Deployment (.assetsignore)
 - Main Bedroom & Study Photos
+- Open work — F Residence
 - package.json
 - Window Geometry from ref_photos
 - Wood Textures & Stool Photos
@@ -36,7 +37,6 @@
 - createStool
 - 2026-10-28 Designer Update
 - Favicon
-- Photo: Utility Balcony from Door
 
 ## God Nodes (most connected - your core abstractions)
 1. `Kitchen (廚房)` - 26 edges
@@ -51,16 +51,16 @@
 10. `Rendering 3 - Kitchen view toward living room and entrance` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `2. App behaviour and accessibility (Minor)` --references--> `solid()`  [INFERRED]
-  TODO.md → app.js
-- `How to verify (needed before any claim of "done")` --references--> `freeSpawn()`  [INFERRED]
-  TODO.md → app.js
-- `2. App behaviour and accessibility (Minor)` --references--> `updateRoom()`  [INFERRED]
-  TODO.md → app.js
-- `3. Geometry and furniture models (Minor)` --references--> `cornerSpan()`  [INFERRED]
-  TODO.md → wall-edges.js
 - `Apartment Floor Plan 2026-10-28` --references--> `Balcony`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-plan-261028.png → ref_photos/apt-plan-2026-10-07.jpg
+- `How to verify (needed before any claim of "done")` --references--> `freeSpawn()`  [INFERRED]
+  TODO.md → app.js
+- `2. Accepted — do not "fix" without a reason` --references--> `resize()`  [INFERRED]
+  TODO.md → app.js
+- `2. Accepted — do not "fix" without a reason` --references--> `cornerSpan()`  [INFERRED]
+  TODO.md → wall-edges.js
+- `Daughter Room Stool (createStool2, procedural wood)` --references--> `createStool2()`  [EXTRACTED]
+  README.md → stool2.js
 
 ## Import Cycles
 - None detected.
@@ -88,8 +88,8 @@
 ## Communities (21 total, 5 thin omitted)
 
 ### Community 0 - "Living, Kitchen & Entrance Design"
-Cohesion: 0.08
-Nodes (67): Ceiling access panel, Cellular (honeycomb) blinds, Curved ceiling soffit with LED, Dark wood/metal dining bench, Upholstered curved-back dining chairs, black frames, Dining table (dark metal frame, light stone top), Full-height entrance mirror, White boucle stool (+59 more)
+Cohesion: 0.06
+Nodes (86): Arched white oak closet/entry portal, Ceiling access panel, Cellular (honeycomb) blinds, Curved ceiling soffit with LED, Dark wood/metal dining bench, Upholstered curved-back dining chairs, black frames, Dining table (dark metal frame, light stone top), Full-height entrance mirror (+78 more)
 
 ### Community 1 - "3D Scene Core (app.js)"
 Cohesion: 0.03
@@ -97,7 +97,7 @@ Nodes (52): architecture, camera, ceiling, colliders, columnRects, drum, entryHa
 
 ### Community 2 - "Bedroom Suite Renderings"
 Cohesion: 0.12
-Nodes (46): Floating vanity with vertical slat fronts and green marble top, Main bathroom window (dark bronze sliding frame), Bedroom Wooden Desk with Chair and Round Walnut Nightstand, Flush hidden bedroom door within slat wall, Ceiling Access Hatch Panel, Study ceiling mirror strip reflecting marble side wall, Curved Sage-Green Ceiling Soffit with LED Cove Lighting, Curved Plaster Wall with Vertical LED Light Reveal (+38 more)
+Nodes (47): Floating vanity with vertical slat fronts and green marble top, Main bathroom window (dark bronze sliding frame), Bedroom Wooden Desk with Chair and Round Walnut Nightstand, Flush hidden bedroom door within slat wall, Ceiling Access Hatch Panel, Study ceiling mirror strip reflecting marble side wall, Curved Sage-Green Ceiling Soffit with LED Cove Lighting, Curved Plaster Wall with Vertical LED Light Reveal (+39 more)
 
 ### Community 3 - "Furniture Geometry Builders"
 Cohesion: 0.17
@@ -108,24 +108,28 @@ Cohesion: 0.16
 Nodes (20): Floor Plan (Option F), Floor Plan 2026-10-07 (photographed revision), Revised Main Bathroom (freestanding tub, shower, WC, vanity), Storage Cabinet (儲藏櫃) beside fridge, Window Width Annotations (W223, W222, W156.5, W155, W128, W104, W78), Daughter's Room (女兒房) 105x188cm bed, Dining Room (餐廳) 4-seat table, Entry Foyer (玄關) (+12 more)
 
 ### Community 5 - "Navigation & Furniture Editing"
-Cohesion: 0.17
-Nodes (16): cleanView(), editMode(), endFurnitureDrag(), look(), material(), photo(), placeFurniture(), requestRender() (+8 more)
+Cohesion: 0.18
+Nodes (12): cleanView(), editMode(), look(), material(), photo(), requestRender(), resetView(), resize() (+4 more)
 
 ### Community 6 - "check.mjs"
-Cohesion: 0.06
-Nodes (37): canStand(), freeSpawn(), move(), placementWalls, renderFrame(), updateRoom(), BENIGN, errors (+29 more)
+Cohesion: 0.08
+Nodes (31): canStand(), endFurnitureDrag(), move(), placeFurniture(), placementWalls, renderFrame(), restoreFurniture(), rotateFurniture() (+23 more)
 
 ### Community 7 - "Seating & Mesh Helpers"
 Cohesion: 0.32
 Nodes (13): boucleChair(), chChair(), cornerLines, daughterStool, floor(), movable(), openingLines, slabShape (+5 more)
 
-### Community 8 - "Daughter Room Design"
-Cohesion: 0.12
-Nodes (29): Arched white oak closet/entry portal, Ceiling-hung wood shelves with clothing rail, Botanical leaf-branch wallpaper, Recessed linear LED ceiling lines, Round wood nightstand with lamp, Light wood single bed, White sliding wardrobe with curved edge, Vanity desk with round mirror (+21 more)
+### Community 8 - "Living Room Windows (photo)"
+Cohesion: 0.17
+Nodes (13): Exterior Balcony / Louver Fins along East and South Facades, Window Dimensions (W223/21.5 living, W222/23 daughter, W223/22 main bed, W156.5 main bed south, W155/89 main bath, W128 study, W104/122 utility balcony, W78/148 guest bath), Daughter Room Windows (photo), Two-Panel Black-Frame Window with Top Awning Sash and Roller Blinds, Guest Bathroom Window (photo), Bidet Toilet, Dark Granite Vanity Sink and Framed Mirror, Small Sliding Window with White Venetian Blind, Living Room Windows (photo) (+5 more)
 
 ### Community 10 - "Main Bedroom & Study Photos"
 Cohesion: 0.20
 Nodes (14): Built-in low cabinet under window with plinth outlets, Polished light porcelain floor tiles with dark skirting, Photo: Main Bedroom Both Window Walls, Wall-mounted split AC unit (main bedroom), Ceiling dome light and smoke detector, Main bedroom corner window layout on two adjacent exterior walls, Main bedroom dark-framed door on side wall, Photo: Main Bedroom Window Wall (faces right on plan) (+6 more)
+
+### Community 11 - "Open work — F Residence"
+Cohesion: 0.33
+Nodes (5): freeSpawn(), 1. Open, 3. Notes, How to verify (needed before any claim of "done"), Open work — F Residence
 
 ### Community 12 - "package.json"
 Cohesion: 0.14
@@ -147,44 +151,40 @@ Nodes (17): addAssetRef(), addModuleRef(), addRuntime(), buildScript, expectedAs
 Cohesion: 0.40
 Nodes (6): Photo: Main Bathroom Window, Built-in white drop-in bathtub under window with hand shower, Ceiling exhaust fan and access hatch, Dark grey large-format wall tiles, Corner glass shower enclosure with gold frame and rain/hand shower, Main bathroom black-framed sliding window with roller blind
 
-### Community 22 - "Photo: Utility Balcony from Door"
-Cohesion: 0.50
-Nodes (4): Photo: Utility Balcony from Door, Ceiling-hung clothes drying rail and exposed pipes, Laundry sink with wall tap and hose, Dark brick-tile parapet wall open to light well
-
 ## Ambiguous Edges - Review These
 - `Toilet door / glass partition opening` → `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
   ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg · relation: conceptually_related_to
-- `Rendering 2 - Cross-section: living room to entrance/fridge wall` → `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
+- `Guest Bathroom (客浴廁)` → `Rendering 2 - Cross-section: living room to entrance/fridge wall`  [AMBIGUOUS]
   ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg · relation: references
-- `Exterior Balcony / Louver Fins along East and South Facades` → `Balcony`  [AMBIGUOUS]
-  ref_photos/apt-plan-2026-10-07.jpg · relation: conceptually_related_to
-- `Balcony` → `Apartment Floor Plan 2026-10-28`  [AMBIGUOUS]
-  ref_photos/rendering-261028/apt-plan-261028.png · relation: references
 - `Study ceiling mirror strip reflecting marble side wall` → `Vertical study wall mirror reflecting study table`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-rendering-20261028-p10-studyroom-view-from-inner-corner-to-table-and-room-entrance-there-is-mirror-on-the ceiling-reflecting-side-wall-near-table.jpg · relation: semantically_similar_to
 - `Study Room (書房)` → `Rendering p03: Main Bedroom, Inner Corner to Entrance`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-rendering-20261028-p03-main-bedroom-vew-from-the-inner-corner-to-entrance-bed-is-blurred.jpg · relation: references
+- `Apartment Floor Plan 2026-10-28` → `Balcony`  [AMBIGUOUS]
+  ref_photos/rendering-261028/apt-plan-261028.png · relation: references
 - `Living Room (客廳) with sofa and TV wall cabinet` → `Pale Leaf-Branch Wall Mural (champagne/beige wallpaper)`  [AMBIGUOUS]
   assets/tex-mural.jpg · relation: conceptually_related_to
 - `Arched white oak closet/entry portal` → `White sliding wardrobe with curved edge`  [AMBIGUOUS]
   ref_photos/rendering-9-straight view daughter room from the window to the room entrance.jpg · relation: conceptually_related_to
+- `Exterior Balcony / Louver Fins along East and South Facades` → `Balcony`  [AMBIGUOUS]
+  ref_photos/apt-plan-2026-10-07.jpg · relation: conceptually_related_to
 
 ## Knowledge Gaps
 - **48 isolated node(s):** `Storage Cabinet (儲藏櫃) and Fridge`, `Utility Balcony AC Outdoor Unit and Gas Water Heater`, `White High-Gloss Kitchen Cabinets and Beige Wall Tiles`, `Wall Intercom Panel`, `Woman seated on sofa (staging)` (+43 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 160 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 158 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `createStool()` connect `createStool` to `3D Scene Core (app.js)`, `index.html App Shell`, `Seating & Mesh Helpers`?**
-  _High betweenness centrality (0.052) - this node is a cross-community bridge._
+  _High betweenness centrality (0.051) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `Kitchen (廚房)` (e.g. with `Rendering 1 - Entrance view from front door` and `Dark wood bench in kitchen corridor`) actually correct?**
   _`Kitchen (廚房)` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `Storage Cabinet (儲藏櫃) and Fridge`, `Utility Balcony AC Outdoor Unit and Gas Water Heater`, `White High-Gloss Kitchen Cabinets and Beige Wall Tiles` to the rest of the system?**
   _48 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Living, Kitchen & Entrance Design` be split into smaller, more focused modules?**
-  _Cohesion score 0.07914970601537766 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06183310533515732 - nodes in this community are weakly interconnected._
 - **Why does `@playwright/test` connect `package.json` to `check-package.mjs`, `check.mjs`?**
   _High betweenness centrality (0.049) - this node is a cross-community bridge._
 
@@ -193,5 +193,5 @@ _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._
 
 - **What is the exact relationship between `Toilet door / glass partition opening` and `Guest Bathroom (客浴廁)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **What is the exact relationship between `Rendering 2 - Cross-section: living room to entrance/fridge wall` and `Guest Bathroom (客浴廁)`?**
+- **What is the exact relationship between `Guest Bathroom (客浴廁)` and `Rendering 2 - Cross-section: living room to entrance/fridge wall`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._

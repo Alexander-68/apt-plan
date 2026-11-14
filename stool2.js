@@ -31,6 +31,18 @@ export function createStool2() {
       return new THREE.CanvasTexture(bumpCanvas);
   }
 
+  // The canvases are drawn at their authored size (stroke widths are in canvas pixels), then
+  // downsampled before upload: about 0.7 mm per texel, a quarter of the original GPU memory.
+  function finish(canvas, divisor) {
+      const small = document.createElement('canvas');
+      small.width = canvas.width / divisor;
+      small.height = canvas.height / divisor;
+      const ctx = small.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(canvas, 0, 0, small.width, small.height);
+      return { texture: new THREE.CanvasTexture(small), bumpTexture: generateBumpTexture(small) };
+  }
+
   // 1. Seat Top Texture: 5 edge-glued vertical planks matching IMG_5722
   function createSeatTopTexture() {
       const canvas = document.createElement('canvas');
@@ -106,9 +118,7 @@ export function createStool2() {
           ctx.fillRect(sx + 0.8, 0, 1, 1536);
       }
 
-      const texture = new THREE.CanvasTexture(canvas);
-      const bumpTexture = generateBumpTexture(canvas);
-      return { texture, bumpTexture };
+      return finish(canvas, 3);
   }
 
   // 2. Apron Wood Texture: Horizontal grain matching IMG_5720 & IMG_5721
@@ -154,11 +164,9 @@ export function createStool2() {
           ctx.fillRect(px + 1, py + 0.7, len * 0.6, 0.6);
       }
 
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.wrapS = THREE.RepeatWrapping;
-      texture.wrapT = THREE.RepeatWrapping;
-      const bumpTexture = generateBumpTexture(canvas);
-      return { texture, bumpTexture };
+      const result = finish(canvas, 2);
+      result.texture.wrapS = result.texture.wrapT = THREE.RepeatWrapping;
+      return result;
   }
 
   // 3. Leg Cap Texture: 3 warm-amber through-joint fingers alternating with 4 blonde wood sections
@@ -263,16 +271,10 @@ export function createStool2() {
           rotCtx.translate(256, 256);
           rotCtx.rotate(Math.PI / 2);
           rotCtx.drawImage(canvas, -256, -256);
-          return {
-              texture: new THREE.CanvasTexture(rotCanvas),
-              bumpTexture: generateBumpTexture(rotCanvas)
-          };
+          return finish(rotCanvas, 2);
       }
 
-      return {
-          texture: new THREE.CanvasTexture(canvas),
-          bumpTexture: generateBumpTexture(canvas)
-      };
+      return finish(canvas, 2);
   }
 
   // 4. Leg Outer Side Texture: 3 dark vertical fingers plunging down 4.5 cm from the top edge
@@ -360,9 +362,7 @@ export function createStool2() {
           currentX += b.w;
       });
 
-      const texture = new THREE.CanvasTexture(canvas);
-      const bumpTexture = generateBumpTexture(canvas);
-      return { texture, bumpTexture };
+      return finish(canvas, 2);
   }
 
   // 5. Plain Leg Side Texture (faces without joint fingers)
@@ -393,9 +393,7 @@ export function createStool2() {
           ctx.fillRect(px, py, 1.1, len);
       }
 
-      const texture = new THREE.CanvasTexture(canvas);
-      const bumpTexture = generateBumpTexture(canvas);
-      return { texture, bumpTexture };
+      return finish(canvas, 2);
   }
 
   // Generate all textures and bump maps

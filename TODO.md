@@ -30,9 +30,6 @@ graphify update .    # after code edits (AST only, no API cost)
       `InstancedMesh` (as for the bath pebbles) would collapse them. Do it only if a low-end device
       is measured struggling — 669 is workable. *Care:* furniture must stay separate; keep `*-sill`
       meshes named, `check.mjs` reads them.
-- [ ] **`stool2.js` texture budget.** Six colour canvases plus six derived bump canvases (one 1536²)
-      for a 35 cm stool, tens of MB of GPU memory on the embedded-GPU target. 512² and one shared
-      noise pass would do; eyeball `artifacts/stool2.png` after.
 - [ ] `stool2.js` seat side walls take UVs from `(x,z)` only, so the 25 mm edge reads as a flat
       strip. `stool.js` solves this with `edgeQuad`; give ExtrudeGeometry group 1 its own strip UV.
 - [ ] Intro areas on 360×640 portrait now sit on a translucent backing but still cover part of the
