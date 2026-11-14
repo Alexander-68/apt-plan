@@ -1,17 +1,17 @@
-# Graph Report - apt  (2026-11-09)
+# Graph Report - apt  (2026-11-14)
 
 ## Corpus Check
-- 10 files · ~13,337 words
+- 11 files · ~15,612 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 3, .css 1)
 
 ## Summary
-- 430 nodes · 868 edges · 23 communities (19 shown, 4 thin omitted)
-- Extraction: 93% EXTRACTED · 7% INFERRED · 1% AMBIGUOUS · INFERRED: 57 edges (avg confidence: 0.81)
+- 436 nodes · 866 edges · 21 communities (16 shown, 5 thin omitted)
+- Extraction: 91% EXTRACTED · 8% INFERRED · 1% AMBIGUOUS · INFERRED: 68 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `61f9ef12`
+- Built from commit: `14024b9f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,15 +27,13 @@
 - Daughter Room Design
 - Cloudflare Workers Deployment (.assetsignore)
 - Main Bedroom & Study Photos
-- Living Room Windows (photo)
 - package.json
 - Window Geometry from ref_photos
 - Wood Textures & Stool Photos
 - index.html App Shell
-- desk
 - check-package.mjs
 - Main Bathroom Photo
-- createStool2
+- createStool
 - 2026-10-28 Designer Update
 - Favicon
 - Photo: Utility Balcony from Door
@@ -43,26 +41,26 @@
 ## God Nodes (most connected - your core abstractions)
 1. `Kitchen (廚房)` - 26 edges
 2. `Living Room (客廳)` - 24 edges
-3. `box()` - 22 edges
-4. `Rendering 6 - Straight view to living room & kitchen` - 21 edges
-5. `Main Bedroom (主臥室)` - 21 edges
-6. `Daughter Room (女兒房)` - 21 edges
-7. `Entrance (玄關)` - 20 edges
-8. `Rendering 5 - Living room corner to dining & entrance` - 20 edges
-9. `Apartment Floor Plan 2026-10-28` - 17 edges
+3. `Rendering 6 - Straight view to living room & kitchen` - 21 edges
+4. `Main Bedroom (主臥室)` - 21 edges
+5. `Daughter Room (女兒房)` - 21 edges
+6. `Entrance (玄關)` - 20 edges
+7. `Rendering 5 - Living room corner to dining & entrance` - 20 edges
+8. `Apartment Floor Plan 2026-10-28` - 17 edges
+9. `box()` - 16 edges
 10. `Rendering 3 - Kitchen view toward living room and entrance` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Toilet door / glass partition opening` --conceptually_related_to--> `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
-  ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg → ref_photos/apt-plan-2026-10-07.jpg
+- `2. App behaviour and accessibility (Minor)` --references--> `solid()`  [INFERRED]
+  TODO.md → app.js
+- `How to verify (needed before any claim of "done")` --references--> `freeSpawn()`  [INFERRED]
+  TODO.md → app.js
+- `2. App behaviour and accessibility (Minor)` --references--> `updateRoom()`  [INFERRED]
+  TODO.md → app.js
+- `3. Geometry and furniture models (Minor)` --references--> `cornerSpan()`  [INFERRED]
+  TODO.md → wall-edges.js
 - `Apartment Floor Plan 2026-10-28` --references--> `Balcony`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-plan-261028.png → ref_photos/apt-plan-2026-10-07.jpg
-- `Daughter Room Stool (createStool2, procedural wood)` --references--> `createStool2()`  [EXTRACTED]
-  README.md → stool2.js
-- `Rendering 2 - Cross-section: living room to entrance/fridge wall` --references--> `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
-  ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg → ref_photos/apt-plan-2026-10-07.jpg
-- `Study ceiling mirror strip reflecting marble side wall` --semantically_similar_to--> `Vertical study wall mirror reflecting study table`  [AMBIGUOUS] [semantically similar]
-  ref_photos/rendering-261028/apt-rendering-20261028-p10-studyroom-view-from-inner-corner-to-table-and-room-entrance-there-is-mirror-on-the ceiling-reflecting-side-wall-near-table.jpg → ref_photos/rendering-261028/apt-rendering-20261028-p09-view-from-studyroom-table-to-the-main-bedroom-closet-onleft-bedroom-door-closed-studyroom-wall-vertical-mirror-onleft-reflecting-study-table.jpg
 
 ## Import Cycles
 - None detected.
@@ -87,67 +85,59 @@
 - **Wooden stool reference photos for 3D model** — assets_stool_frame, assets_stool_top, assets_stool_frame_solid_wood_stool [INFERRED 0.85]
 - **Study workspace: desk, shelves, chair, marble wall, mirrors** — design_study_desk, design_study_shelves, design_study_chair, design_green_marble, design_ceiling_mirror, design_study_vertical_mirror [INFERRED 0.85]
 
-## Communities (23 total, 4 thin omitted)
+## Communities (21 total, 5 thin omitted)
 
 ### Community 0 - "Living, Kitchen & Entrance Design"
 Cohesion: 0.08
-Nodes (64): Ceiling access panel, Cellular (honeycomb) blinds, Curved ceiling soffit with LED, Dark wood/metal dining bench, Upholstered curved-back dining chairs, black frames, Dining table (dark metal frame, light stone top), Full-height entrance mirror, White boucle stool (+56 more)
+Nodes (67): Ceiling access panel, Cellular (honeycomb) blinds, Curved ceiling soffit with LED, Dark wood/metal dining bench, Upholstered curved-back dining chairs, black frames, Dining table (dark metal frame, light stone top), Full-height entrance mirror, White boucle stool (+59 more)
 
 ### Community 1 - "3D Scene Core (app.js)"
 Cohesion: 0.03
-Nodes (53): architecture, camera, ceiling, colliders, columnRects, drum, entryHatches, environment (+45 more)
+Nodes (52): architecture, camera, ceiling, colliders, columnRects, drum, entryHatches, environment (+44 more)
 
 ### Community 2 - "Bedroom Suite Renderings"
-Cohesion: 0.11
-Nodes (48): Floating vanity with vertical slat fronts and green marble top, Main bathroom window (dark bronze sliding frame), Bedroom Wooden Desk with Chair and Round Walnut Nightstand, Flush hidden bedroom door within slat wall, Ceiling Access Hatch Panel, Study ceiling mirror strip reflecting marble side wall, Curved Sage-Green Ceiling Soffit with LED Cove Lighting, Curved Plaster Wall with Vertical LED Light Reveal (+40 more)
+Cohesion: 0.12
+Nodes (46): Floating vanity with vertical slat fronts and green marble top, Main bathroom window (dark bronze sliding frame), Bedroom Wooden Desk with Chair and Round Walnut Nightstand, Flush hidden bedroom door within slat wall, Ceiling Access Hatch Panel, Study ceiling mirror strip reflecting marble side wall, Curved Sage-Green Ceiling Soffit with LED Cove Lighting, Curved Plaster Wall with Vertical LED Light Reveal (+38 more)
 
 ### Community 3 - "Furniture Geometry Builders"
-Cohesion: 0.15
-Nodes (19): ball(), bed(), box(), bulkhead(), cabinet(), cubbies(), cyl(), joinery() (+11 more)
+Cohesion: 0.17
+Nodes (16): ball(), box(), bulkhead(), cabinet(), cubbies(), cyl(), joinery(), led() (+8 more)
 
 ### Community 4 - "Option F Plan (assets)"
 Cohesion: 0.16
 Nodes (20): Floor Plan (Option F), Floor Plan 2026-10-07 (photographed revision), Revised Main Bathroom (freestanding tub, shower, WC, vanity), Storage Cabinet (儲藏櫃) beside fridge, Window Width Annotations (W223, W222, W156.5, W155, W128, W104, W78), Daughter's Room (女兒房) 105x188cm bed, Dining Room (餐廳) 4-seat table, Entry Foyer (玄關) (+12 more)
 
 ### Community 5 - "Navigation & Furniture Editing"
-Cohesion: 0.18
-Nodes (14): cleanView(), editMode(), endFurnitureDrag(), look(), photo(), placeFurniture(), requestRender(), resetView() (+6 more)
+Cohesion: 0.17
+Nodes (16): cleanView(), editMode(), endFurnitureDrag(), look(), material(), photo(), placeFurniture(), requestRender() (+8 more)
 
 ### Community 6 - "check.mjs"
-Cohesion: 0.08
-Nodes (28): canStand(), freeSpawn(), move(), placementWalls, renderFrame(), updateRoom(), BENIGN, errors (+20 more)
+Cohesion: 0.06
+Nodes (37): canStand(), freeSpawn(), move(), placementWalls, renderFrame(), updateRoom(), BENIGN, errors (+29 more)
 
 ### Community 7 - "Seating & Mesh Helpers"
-Cohesion: 0.30
-Nodes (14): boucleChair(), chair(), chChair(), cornerLines, daughterStool, floor(), movable(), openingLines (+6 more)
+Cohesion: 0.32
+Nodes (13): boucleChair(), chChair(), cornerLines, daughterStool, floor(), movable(), openingLines, slabShape (+5 more)
 
 ### Community 8 - "Daughter Room Design"
-Cohesion: 0.25
-Nodes (17): Arched white oak closet/entry portal, Ceiling-hung wood shelves with clothing rail, Botanical leaf-branch wallpaper, Recessed linear LED ceiling lines, Round wood nightstand with lamp, Light wood single bed, White sliding wardrobe with curved edge, Vanity desk with round mirror (+9 more)
+Cohesion: 0.12
+Nodes (29): Arched white oak closet/entry portal, Ceiling-hung wood shelves with clothing rail, Botanical leaf-branch wallpaper, Recessed linear LED ceiling lines, Round wood nightstand with lamp, Light wood single bed, White sliding wardrobe with curved edge, Vanity desk with round mirror (+21 more)
 
 ### Community 10 - "Main Bedroom & Study Photos"
 Cohesion: 0.20
 Nodes (14): Built-in low cabinet under window with plinth outlets, Polished light porcelain floor tiles with dark skirting, Photo: Main Bedroom Both Window Walls, Wall-mounted split AC unit (main bedroom), Ceiling dome light and smoke detector, Main bedroom corner window layout on two adjacent exterior walls, Main bedroom dark-framed door on side wall, Photo: Main Bedroom Window Wall (faces right on plan) (+6 more)
 
-### Community 11 - "Living Room Windows (photo)"
-Cohesion: 0.17
-Nodes (13): Exterior Balcony / Louver Fins along East and South Facades, Window Dimensions (W223/21.5 living, W222/23 daughter, W223/22 main bed, W156.5 main bed south, W155/89 main bath, W128 study, W104/122 utility balcony, W78/148 guest bath), Daughter Room Windows (photo), Two-Panel Black-Frame Window with Top Awning Sash and Roller Blinds, Guest Bathroom Window (photo), Bidet Toilet, Dark Granite Vanity Sink and Framed Mirror, Small Sliding Window with White Venetian Blind, Living Room Windows (photo) (+5 more)
-
 ### Community 12 - "package.json"
-Cohesion: 0.18
-Nodes (11): description, devDependencies, @playwright/test@^1.63.0, name, scripts, start, test, test:package (+3 more)
+Cohesion: 0.14
+Nodes (14): description, devDependencies, @playwright/test@^1.63.0, engines, node, name, private, scripts (+6 more)
 
 ### Community 14 - "Wood Textures & Stool Photos"
 Cohesion: 0.25
 Nodes (8): Wooden Stool Photo (side view), Solid Wood Square Stool (thick legs, apron, laminated end-grain leg caps), Wooden Stool Photo (top view), Stool Seat Top Texture (light beech/rubberwood, striped corner leg tops), Walnut Texture, Walnut Wood Veneer (medium brown vertical grain), White Oak Texture, Light Grey-washed White Oak (plank, likely flooring)
 
 ### Community 15 - "index.html App Shell"
-Cohesion: 0.10
-Nodes (18): AGENTS.md Agent Instructions, Furnished 3D Apartment Walkthrough (Three.js 0.185.0, jsDelivr, no build step), Dynamic app.js Loader with Error Fallback, Floor Area Stats (85.4 / 90.6 m2), Help Dialog, Three.js Import Map, Camera Mode Switch (3D Overview / Walk inside), index.html App Shell (+10 more)
-
-### Community 16 - "desk"
-Cohesion: 0.67
-Nodes (4): book(), desk(), lamp(), material()
+Cohesion: 0.08
+Nodes (27): AGENTS.md Agent Instructions, Furnished 3D Apartment Walkthrough (Three.js 0.185.0, jsDelivr, no build step), Dynamic app.js Loader with Error Fallback, Floor Area Stats (85.4 / 90.6 m2), Help Dialog, Three.js Import Map, Camera Mode Switch (3D Overview / Walk inside), index.html App Shell (+19 more)
 
 ### Community 17 - "check-package.mjs"
 Cohesion: 0.13
@@ -157,10 +147,6 @@ Nodes (17): addAssetRef(), addModuleRef(), addRuntime(), buildScript, expectedAs
 Cohesion: 0.40
 Nodes (6): Photo: Main Bathroom Window, Built-in white drop-in bathtub under window with hand shower, Ceiling exhaust fan and access hatch, Dark grey large-format wall tiles, Corner glass shower enclosure with gold frame and rain/hand shower, Main bathroom black-framed sliding window with roller blind
 
-### Community 19 - "createStool2"
-Cohesion: 0.19
-Nodes (10): Daughter Room Stool (createStool2, procedural wood), Study Stool (createStool, photo-textured), createStool2(), createApronWoodTexture(), createFingerJointCapTexture(), createLegPlainSideTexture(), createLegPlungeJointSideTexture(), createSeatTopTexture() (+2 more)
-
 ### Community 22 - "Photo: Utility Balcony from Door"
 Cohesion: 0.50
 Nodes (4): Photo: Utility Balcony from Door, Ceiling-hung clothes drying rail and exposed pipes, Laundry sink with wall tap and hose, Dark brick-tile parapet wall open to light well
@@ -168,14 +154,14 @@ Nodes (4): Photo: Utility Balcony from Door, Ceiling-hung clothes drying rail an
 ## Ambiguous Edges - Review These
 - `Toilet door / glass partition opening` → `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
   ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg · relation: conceptually_related_to
-- `Guest Bathroom (客浴廁)` → `Rendering 2 - Cross-section: living room to entrance/fridge wall`  [AMBIGUOUS]
+- `Rendering 2 - Cross-section: living room to entrance/fridge wall` → `Guest Bathroom (客浴廁)`  [AMBIGUOUS]
   ref_photos/rendering-2-straight cross-section view from the living room to the wall containing shoes closets decorative light mirror toiled roor appliances closets refrigerator.jpg · relation: references
 - `Exterior Balcony / Louver Fins along East and South Facades` → `Balcony`  [AMBIGUOUS]
   ref_photos/apt-plan-2026-10-07.jpg · relation: conceptually_related_to
-- `Study ceiling mirror strip reflecting marble side wall` → `Vertical study wall mirror reflecting study table`  [AMBIGUOUS]
-  ref_photos/rendering-261028/apt-rendering-20261028-p10-studyroom-view-from-inner-corner-to-table-and-room-entrance-there-is-mirror-on-the ceiling-reflecting-side-wall-near-table.jpg · relation: semantically_similar_to
 - `Balcony` → `Apartment Floor Plan 2026-10-28`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-plan-261028.png · relation: references
+- `Study ceiling mirror strip reflecting marble side wall` → `Vertical study wall mirror reflecting study table`  [AMBIGUOUS]
+  ref_photos/rendering-261028/apt-rendering-20261028-p10-studyroom-view-from-inner-corner-to-table-and-room-entrance-there-is-mirror-on-the ceiling-reflecting-side-wall-near-table.jpg · relation: semantically_similar_to
 - `Study Room (書房)` → `Rendering p03: Main Bedroom, Inner Corner to Entrance`  [AMBIGUOUS]
   ref_photos/rendering-261028/apt-rendering-20261028-p03-main-bedroom-vew-from-the-inner-corner-to-entrance-bed-is-blurred.jpg · relation: references
 - `Living Room (客廳) with sofa and TV wall cabinet` → `Pale Leaf-Branch Wall Mural (champagne/beige wallpaper)`  [AMBIGUOUS]
@@ -185,27 +171,27 @@ Nodes (4): Photo: Utility Balcony from Door, Ceiling-hung clothes drying rail an
 
 ## Knowledge Gaps
 - **48 isolated node(s):** `Storage Cabinet (儲藏櫃) and Fridge`, `Utility Balcony AC Outdoor Unit and Gas Water Heater`, `White High-Gloss Kitchen Cabinets and Beige Wall Tiles`, `Wall Intercom Panel`, `Woman seated on sofa (staging)` (+43 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 154 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 160 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createStool()` connect `createStool2` to `3D Scene Core (app.js)`, `Seating & Mesh Helpers`?**
-  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+- **Why does `createStool()` connect `createStool` to `3D Scene Core (app.js)`, `index.html App Shell`, `Seating & Mesh Helpers`?**
+  _High betweenness centrality (0.052) - this node is a cross-community bridge._
 - **Are the 4 inferred relationships involving `Kitchen (廚房)` (e.g. with `Rendering 1 - Entrance view from front door` and `Dark wood bench in kitchen corridor`) actually correct?**
   _`Kitchen (廚房)` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `Storage Cabinet (儲藏櫃) and Fridge`, `Utility Balcony AC Outdoor Unit and Gas Water Heater`, `White High-Gloss Kitchen Cabinets and Beige Wall Tiles` to the rest of the system?**
   _48 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Living, Kitchen & Entrance Design` be split into smaller, more focused modules?**
-  _Cohesion score 0.08432539682539683 - nodes in this community are weakly interconnected._
-- **Why does `Study Stool (createStool, photo-textured)` connect `createStool2` to `index.html App Shell`?**
-  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+  _Cohesion score 0.07914970601537766 - nodes in this community are weakly interconnected._
+- **Why does `@playwright/test` connect `package.json` to `check-package.mjs`, `check.mjs`?**
+  _High betweenness centrality (0.049) - this node is a cross-community bridge._
 
 ### Low-confidence Hints
 _AMBIGUOUS edges — the extractor was unsure. Verify before acting on these._
 
 - **What is the exact relationship between `Toilet door / glass partition opening` and `Guest Bathroom (客浴廁)`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **What is the exact relationship between `Guest Bathroom (客浴廁)` and `Rendering 2 - Cross-section: living room to entrance/fridge wall`?**
+- **What is the exact relationship between `Rendering 2 - Cross-section: living room to entrance/fridge wall` and `Guest Bathroom (客浴廁)`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._

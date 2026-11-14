@@ -226,7 +226,7 @@ for(const [x1,z1,x2,z2,{head=2.25,style}={}] of doors) {
     box(cx,cz,w,3,head-.02,.01,M.whiteOak,0,leaf);
     stripWall(cx-w/2+1,cz-1.5,cx+w/2-1,cz,'north',head-.04,5,leaf,false);
     box(x1,cz-1,w*2,4,.03,head,M.paint,0,leaf);
-    solid(cx,cz,w,3);
+    solid(cx-1.5,cz,w-3,3); // stops at the jamb so the doorway keeps its clear width
   } else if(style==='reeded') {
     // Study: two reeded-glass sliding leaves with a clear lower band (p06), stacked on the desk side for walking.
     const lw=(x2-x1)/2+2;
@@ -842,7 +842,7 @@ function setMode(next,room=rooms[0]) {
     const [spawnX,spawnZ]=freeSpawn(X(room.point[0]),Z(room.point[1]));
     camera.position.set(spawnX,1.62,spawnZ);
     yaw=Math.atan2(-(room.look[0]-room.point[0]),-(room.look[1]-room.point[1]));pitch=['bath','guest','utility','kitchen'].includes(room.id)?-.48:-.2;
-    look();updateRoom();$('#hint').textContent=matchMedia('(any-pointer:coarse)').matches?'Drag to look · Arrow pad to move':'WASD / arrows to move · Drag to look · Esc releases mouse';
+    look();updateRoom();$('#hint').textContent=matchMedia('(pointer:coarse)').matches?'Drag to look · Arrow pad to move':'WASD / arrows to move · Drag to look · Esc releases mouse';
   }
   renderer.domElement.tabIndex=-1;renderer.domElement.focus({preventScroll:true});
 }
@@ -983,6 +983,7 @@ renderer.domElement.addEventListener('pointermove',e=>{
   const {object,plane,offset}=furnitureDrag,point=new THREE.Vector3();
   if(!furnitureRay.ray.intersectPlane(plane,point))return;
   point.add(offset);
+  if(Math.hypot(e.clientX-furnitureDrag.x,e.clientY-furnitureDrag.y)>=8)furnitureDrag.moved=true;
   object.position.x=point.x;object.position.z=point.z;
   // A full 2048² VSM shadow pass on every pointermove is the costliest thing a drag can do;
   // refresh every fourth move instead. The drop always refreshes, so the final shadows are exact.
@@ -992,7 +993,7 @@ renderer.domElement.addEventListener('pointerup',e=>{
   const object=furnitureDrag?.object;
   if(e.pointerId!==furnitureDrag?.id)return;
   // Only two touch taps (neither moved beyond a few px) within 600 ms rotate; a tap then a drag does not.
-  const tap=e.pointerType==='touch'&&Math.hypot(e.clientX-furnitureDrag.x,e.clientY-furnitureDrag.y)<8;
+  const tap=e.pointerType==='touch'&&!furnitureDrag.moved&&Math.hypot(e.clientX-furnitureDrag.x,e.clientY-furnitureDrag.y)<8;
   const rotate=tap&&lastFurnitureTap?.object===object&&e.timeStamp-lastFurnitureTap.time<600;
   endFurnitureDrag();
   if(rotate){rotateFurniture(object);lastFurnitureTap=null;}

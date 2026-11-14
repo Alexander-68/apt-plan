@@ -658,6 +658,11 @@ try {
   assert.notDeepEqual(savedLayout[4],defaultLayout[4],'Chair moves before saving');
   const originalBounds=defaultLayout[3][2],rotatedBounds=savedLayout[3][2];
   assert.ok(Math.abs((rotatedBounds[2]-rotatedBounds[0])-(originalBounds[3]-originalBounds[1]))<1e-8,'Rotated table swaps collision width and depth');
+  // The study desk chair is built facing +z and turned -90°: its 38×36 px collider must be turned too.
+  const deskChair=defaultLayout.find(([[x,,z]])=>Math.abs(x-X(1310))<1e-6&&Math.abs(z-Z(338))<1e-6);
+  assert.ok(deskChair,'study desk chair is in the default layout');
+  const px=X(1)-X(0),[cx1,cz1,cx2,cz2]=deskChair[2];
+  assert.ok(Math.abs((cx2-cx1)/px-36)<1e-6&&Math.abs((cz2-cz1)/px-38)<1e-6,`Turned desk chair collider is 36×38 px (found ${((cx2-cx1)/px).toFixed(1)}×${((cz2-cz1)/px).toFixed(1)})`);
   await page.locator('#clean').click();await page.locator('#walk').click();await page.locator('#overview').click();
   assert.deepEqual(await page.evaluate(()=>testHooks.layoutCheck()),savedLayout,'Changing views preserves furniture');
   await page.reload();await page.waitForFunction(()=>window.testHooks);
@@ -706,6 +711,17 @@ try {
   await assertHooks(mobile);
   const cdp=await mobile.context().newCDPSession(mobile);
   await mobile.locator('#edit').tap();
+  {
+    const target=await mobile.evaluate(()=>testHooks.touchFurniture()),dragStart=target;
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:target.x,y:target.y}]});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:target.x,y:target.y}]});
+    // Out and back, so the piece ends where it started and the double-tap below still hits it.
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:target.x+30,y:target.y+10}]});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:target.x,y:target.y}]});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    assert.equal((await mobile.evaluate(()=>testHooks.touchFurniture())).angle,dragStart.angle,'A tap followed by a drag does not rotate');
+  }
   const touchBefore=await mobile.evaluate(()=>testHooks.touchFurniture());
   for(let i=0;i<2;i++) {
     const target=await mobile.evaluate(()=>testHooks.touchFurniture());
